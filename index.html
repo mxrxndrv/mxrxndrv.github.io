@@ -2,178 +2,212 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mirindra Chat</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mirindra Chat Public</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   <style>
     body {
-      font-family: sans-serif;
-      margin: 0;
-      padding: 0;
-      background: #f0f2f5;
-      transition: background 0.5s;
-    }
-
-    header {
-      background: #333;
-      color: white;
-      padding: 10px 20px;
-      text-align: center;
-      font-size: 24px;
-      animation: fadeIn 1s ease;
-    }
-
-    nav {
-      display: flex;
-      justify-content: center;
-      background: #444;
-    }
-
-    nav button {
-      padding: 10px 20px;
-      margin: 5px;
-      background: #666;
-      color: white;
-      border: none;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    nav button:hover {
-      background: #888;
-    }
-
-    .section {
-      display: none;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #e8f0ff, #f5f5f5);
       padding: 20px;
-      animation: fadeIn 0.5s ease;
+      margin: 0;
+      overflow: hidden;
     }
-
-    .active {
-      display: block;
+    h1 {
+      text-align: center;
+      color: #444;
     }
-
     #chat-box {
       border: 1px solid #ccc;
-      height: 200px;
-      overflow-y: scroll;
-      padding: 10px;
-      background: white;
-    }
-
-    #dropZone {
-      margin-top: 20px;
-      padding: 40px;
-      border: 2px dashed #888;
-      text-align: center;
       background: #fff;
-      transition: background 0.3s, border-color 0.3s;
+      padding: 10px;
+      height: 300px;
+      overflow-y: auto;
+      margin-bottom: 10px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-
-    #dropZone.hover {
-      background: #eee;
-      border-color: #555;
+    .message {
+      margin-bottom: 5px;
+      padding: 5px;
+      border-radius: 4px;
+      background: #f0f0f0;
     }
-
-    @keyframes fadeIn {
-      from {opacity: 0; transform: translateY(-10px);}
-      to {opacity: 1; transform: translateY(0);}
+    #login, #signup, #chat-container {
+      display: none;
+      max-width: 400px;
+      margin: auto;
+      position: relative;
+      z-index: 1;
     }
-
-    img, video {
-      max-width: 100%;
+    input, button {
+      padding: 10px;
+      margin: 6px 0;
+      width: 100%;
+      box-sizing: border-box;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #4a90e2;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #357bd8;
+    }
+    p small {
+      font-size: 12px;
+      color: #888;
+      text-align: center;
+      display: block;
       margin-top: 10px;
+    }
+
+    /* ANIMATION EMOJIS */
+    .emoji {
+      position: fixed;
+      font-size: 24px;
+      top: -30px;
+      animation: fall 5s linear infinite;
+      pointer-events: none;
+      z-index: 0;
+    }
+    @keyframes fall {
+      0% { transform: translateY(-30px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
     }
   </style>
 </head>
 <body>
 
-  <header>Mirindra Chat</header>
+  <h1>Mirindra Chat Public</h1>
 
-  <nav>
-    <button onclick="switchTab('home')">Accueil</button>
-    <button onclick="switchTab('chat')">Discussion</button>
-    <button onclick="switchTab('about')">À propos</button>
-  </nav>
-
-  <div id="home" class="section active">
-    <h2>Bienvenue sur Mirindra Chat</h2>
-    <p>Un espace simple pour discuter et partager !</p>
+  <div id="login">
+    <h3>Connexion</h3>
+    <input type="email" id="login-email" placeholder="Email" />
+    <input type="password" id="login-password" placeholder="Mot de passe" />
+    <button onclick="login()">Se connecter</button>
+    <p>Pas de compte ? <a href="#" onclick="showSignup()">Créer un compte</a></p>
   </div>
 
-  <div id="chat" class="section">
-    <h2>Discussion</h2>
+  <div id="signup">
+    <h3>Créer un compte</h3>
+    <input type="email" id="signup-email" placeholder="Email (même inventé)" />
+    <input type="password" id="signup-password" placeholder="Mot de passe" />
+    <button onclick="signup()">S'inscrire</button>
+    <p>Déjà un compte ? <a href="#" onclick="showLogin()">Se connecter</a></p>
+    <p><small>Andrianarivelo Njara Mirindra Nirina</small></p>
+  </div>
+
+  <div id="chat-container">
+    <p>Connecté en tant que <span id="user-email"></span> <button onclick="logout()">Déconnexion</button></p>
     <div id="chat-box"></div>
-    <form id="chat-form">
-      <input type="text" id="user" placeholder="Nom" required />
-      <input type="text" id="message" placeholder="Message" required />
-      <button type="submit">Envoyer</button>
-    </form>
-  </div>
-
-  <div id="about" class="section">
-    <h2>À propos</h2>
-    <p>Glisse ici tes photos ou vidéos :</p>
-    <div id="dropZone">Dépose tes fichiers ici</div>
-    <div id="mediaPreview"></div>
+    <input type="text" id="message" placeholder="Écris ton message..." />
+    <button onclick="sendMessage()">Envoyer</button>
   </div>
 
   <script>
-    function switchTab(id) {
-      document.querySelectorAll('.section').forEach(section => {
-        section.classList.remove('active');
-      });
-      document.getElementById(id).classList.add('active');
+    const firebaseConfig = {
+      apiKey: "mxrxndrv756",
+      authDomain: "mxrxndrv messenger.mimi.com",
+      projectId: "mxrxndrv message",
+      storageBucket: "mimi.com",
+      messagingSenderId: "19215678",
+      appId: "1:19215678:mimi:mxr12mi89"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    const loginDiv = document.getElementById("login");
+    const signupDiv = document.getElementById("signup");
+    const chatDiv = document.getElementById("chat-container");
+    const chatBox = document.getElementById("chat-box");
+
+    auth.onAuthStateChanged(user => {
+      if (user) showChat(user);
+      else showLogin();
+    });
+
+    function showLogin() {
+      loginDiv.style.display = "block";
+      signupDiv.style.display = "none";
+      chatDiv.style.display = "none";
     }
 
-    // Chat fictif
-    document.getElementById("chat-form").addEventListener("submit", function(e) {
-      e.preventDefault();
-      const user = document.getElementById("user").value;
+    function showSignup() {
+      loginDiv.style.display = "none";
+      signupDiv.style.display = "block";
+      chatDiv.style.display = "none";
+    }
+
+    function showChat(user) {
+      loginDiv.style.display = "none";
+      signupDiv.style.display = "none";
+      chatDiv.style.display = "block";
+      document.getElementById("user-email").innerText = user.email;
+      listenForMessages();
+    }
+
+    function signup() {
+      const email = document.getElementById("signup-email").value;
+      const password = document.getElementById("signup-password").value;
+      auth.createUserWithEmailAndPassword(email, password).catch(err => alert(err.message));
+    }
+
+    function login() {
+      const email = document.getElementById("login-email").value;
+      const password = document.getElementById("login-password").value;
+      auth.signInWithEmailAndPassword(email, password).catch(err => alert(err.message));
+    }
+
+    function logout() {
+      auth.signOut();
+    }
+
+    function sendMessage() {
+      const user = auth.currentUser;
       const msg = document.getElementById("message").value;
-      const chatBox = document.getElementById("chat-box");
-
-      const div = document.createElement("div");
-      div.textContent = `${user} : ${msg}`;
-      chatBox.appendChild(div);
-      chatBox.scrollTop = chatBox.scrollHeight;
-
-      document.getElementById("message").value = "";
-    });
-
-    // Drag & drop
-    const dropZone = document.getElementById("dropZone");
-    const mediaPreview = document.getElementById("mediaPreview");
-
-    dropZone.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      dropZone.classList.add("hover");
-    });
-
-    dropZone.addEventListener("dragleave", () => {
-      dropZone.classList.remove("hover");
-    });
-
-    dropZone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      dropZone.classList.remove("hover");
-
-      Array.from(e.dataTransfer.files).forEach(file => {
-        const url = URL.createObjectURL(file);
-        if (file.type.startsWith("image")) {
-          const img = document.createElement("img");
-          img.src = url;
-          mediaPreview.appendChild(img);
-        } else if (file.type.startsWith("video")) {
-          const vid = document.createElement("video");
-          vid.src = url;
-          vid.controls = true;
-          mediaPreview.appendChild(vid);
-        } else {
-          alert("Seules les images et vidéos sont supportées.");
-        }
+      if (msg.trim() === "") return;
+      db.collection("public_messages").add({
+        sender: user.email,
+        text: msg,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
       });
-    });
-  </script>
+      document.getElementById("message").value = "";
+    }
 
+    function listenForMessages() {
+      db.collection("public_messages").orderBy("timestamp")
+        .onSnapshot(snapshot => {
+          chatBox.innerHTML = "";
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            const div = document.createElement("div");
+            div.className = "message";
+            div.textContent = `${data.sender}: ${data.text}`;
+            chatBox.appendChild(div);
+            chatBox.scrollTop = chatBox.scrollHeight;
+          });
+        });
+    }
+
+    // Animation d’émojis qui tombent
+    const emojis = ["🔥", "❤️", "⭐", "✨", "🎉", "💬", "😂", "😎", "⚡"];
+    function createEmoji() {
+      const emoji = document.createElement("div");
+      emoji.className = "emoji";
+      emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      emoji.style.left = Math.random() * 100 + "vw";
+      emoji.style.fontSize = (20 + Math.random() * 20) + "px";
+      document.body.appendChild(emoji);
+      setTimeout(() => emoji.remove(), 5000);
+    }
+    setInterval(createEmoji, 500);
+  </script>
 </body>
 </html>
