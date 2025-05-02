@@ -1,1380 +1,179 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Mirindra Chat</title>
   <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f0f2f5;
+      transition: background 0.5s;
+    }
+
+    header {
+      background: #333;
+      color: white;
+      padding: 10px 20px;
+      text-align: center;
+      font-size: 24px;
+      animation: fadeIn 1s ease;
+    }
+
+    nav {
+      display: flex;
+      justify-content: center;
+      background: #444;
+    }
+
+    nav button {
+      padding: 10px 20px;
+      margin: 5px;
+      background: #666;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    nav button:hover {
+      background: #888;
+    }
+
+    .section {
+      display: none;
+      padding: 20px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .active {
+      display: block;
+    }
+
     #chat-box {
       border: 1px solid #ccc;
-      height: 300px;
+      height: 200px;
       overflow-y: scroll;
       padding: 10px;
-      margin-bottom: 10px;
+      background: white;
     }
+
     #dropZone {
-      border: 2px dashed #ccc;
-      padding: 20px;
+      margin-top: 20px;
+      padding: 40px;
+      border: 2px dashed #888;
       text-align: center;
-      margin-bottom: 10px;
+      background: #fff;
+      transition: background 0.3s, border-color 0.3s;
     }
+
     #dropZone.hover {
-      border-color: #333;
-      background-color: #f0f0f0;
+      background: #eee;
+      border-color: #555;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(-10px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+
+    img, video {
+      max-width: 100%;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
 
-  <h1>Mirindra Chat</h1>
-  <h3>Par Andrianarivelo Njara Mirindra Nirina</h3>
+  <header>Mirindra Chat</header>
 
-  <div id="auth">
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Mot de passe" required />
-    <button id="registerBtn">Créer un compte</button>
-    <button id="loginBtn">Se connecter</button>
-    <button id="logoutBtn" style="display:none;">Déconnexion</button>
+  <nav>
+    <button onclick="switchTab('home')">Accueil</button>
+    <button onclick="switchTab('chat')">Discussion</button>
+    <button onclick="switchTab('about')">À propos</button>
+  </nav>
+
+  <div id="home" class="section active">
+    <h2>Bienvenue sur Mirindra Chat</h2>
+    <p>Un espace simple pour discuter et partager !</p>
   </div>
 
-  <div id="messaging" style="display:none;">
-    <h3>Bienvenue, <span id="currentUserEmail"></span></h3>
-    <div id="adminNotice"></div>
-
-    <input type="text" id="recipient" placeholder="Destinataire (email)" required />
+  <div id="chat" class="section">
+    <h2>Discussion</h2>
     <div id="chat-box"></div>
-
     <form id="chat-form">
-      <input type="text" id="message" placeholder="Votre message" required />
+      <input type="text" id="user" placeholder="Nom" required />
+      <input type="text" id="message" placeholder="Message" required />
       <button type="submit">Envoyer</button>
     </form>
-
-    <input type="file" id="fileInput" multiple />
-    <div id="dropZone">Glissez vos fichiers ici</div>
   </div>
 
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
+  <div id="about" class="section">
+    <h2>À propos</h2>
+    <p>Glisse ici tes photos ou vidéos :</p>
+    <div id="dropZone">Dépose tes fichiers ici</div>
+    <div id="mediaPreview"></div>
+  </div>
 
   <script>
-    // Configuration Firebase
-    const firebaseConfig = {
-      apiKey: "mxrxndrv756",
-      authDomain: "mxrxndrv-messenger.mimi.com",
-      projectId: "mxrxndrv-message",
-      storageBucket: "mimi.com",
-      messagingSenderId: "19215678",
-      appId: "1:19215678:mimi:mxr12mi89"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-    const storage = firebase.storage();
-
-    // DOM
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const registerBtn = document.getElementById("registerBtn");
-    const loginBtn = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const chatForm = document.getElementById("chat-form");
-    const messageInput = document.getElementById("message");
-    const recipientInput = document.getElementById("recipient");
-    const chatBox = document.getElementById("chat-box");
-    const fileInput = document.getElementById("fileInput");
-    const dropZone = document.getElementById("dropZone");
-    const messagingDiv = document.getElementById("messaging");
-    const currentUserEmail = document.getElementById("currentUserEmail");
-    const adminNotice = document.getElementById("adminNotice");
-
-    let currentUser = null;
-
-    // Auth
-    registerBtn.onclick = () => {
-      auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .then(() => alert("Compte créé avec succès."))
-        .catch(err => alert(err.message));
-    };
-
-    loginBtn.onclick = () => {
-      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .catch(err => alert(err.message));
-    };
-
-    logoutBtn.onclick = () => auth.signOut();
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        messagingDiv.style.display = "block";
-        logoutBtn.style.display = "inline";
-        currentUserEmail.textContent = user.email;
-
-        // Marquage admin
-        if (user.email === "mxrxndrv@gmail.com") {
-          adminNotice.innerHTML = "<strong style='color:red;'>Connecté en tant qu'Administrateur</strong>";
-        } else {
-          adminNotice.innerHTML = "";
-        }
-
-        listenToMessages(user.email);
-      } else {
-        messagingDiv.style.display = "none";
-        logoutBtn.style.display = "none";
-        currentUser = null;
-      }
-    });
-
-    // Envoi message
-    chatForm.addEventListener("submit", function(e) {
-      e.preventDefault();
-      const message = messageInput.value;
-      const recipient = recipientInput.value;
-
-      db.collection("messages").add({
-        sender: currentUser.email,
-        recipient,
-        message,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    function switchTab(id) {
+      document.querySelectorAll('.section').forEach(section => {
+        section.classList.remove('active');
       });
-
-      messageInput.value = "";
-    });
-
-    // Afficher messages
-    function listenToMessages(userEmail) {
-      db.collection("messages")
-        .where("recipient", "==", userEmail)
-        .orderBy("timestamp")
-        .onSnapshot(snapshot => {
-          chatBox.innerHTML = "";
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const div = document.createElement("div");
-            div.textContent = `${data.sender} : ${data.message}`;
-            chatBox.appendChild(div);
-          });
-        });
+      document.getElementById(id).classList.add('active');
     }
 
+    // Chat fictif
+    document.getElementById("chat-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const user = document.getElementById("user").value;
+      const msg = document.getElementById("message").value;
+      const chatBox = document.getElementById("chat-box");
+
+      const div = document.createElement("div");
+      div.textContent = `${user} : ${msg}`;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      document.getElementById("message").value = "";
+    });
+
     // Drag & drop
+    const dropZone = document.getElementById("dropZone");
+    const mediaPreview = document.getElementById("mediaPreview");
+
     dropZone.addEventListener("dragover", (e) => {
       e.preventDefault();
       dropZone.classList.add("hover");
     });
-    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("hover"));
+
+    dropZone.addEventListener("dragleave", () => {
+      dropZone.classList.remove("hover");
+    });
+
     dropZone.addEventListener("drop", (e) => {
       e.preventDefault();
       dropZone.classList.remove("hover");
-      handleFiles(e.dataTransfer.files);
-    });
-    fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
 
-    function handleFiles(files) {
-      Array.from(files).forEach(file => {
-        const maxSize = 50 * 1024 * 1024;
-        if (file.size <= maxSize) {
-          uploadFile(file);
+      Array.from(e.dataTransfer.files).forEach(file => {
+        const url = URL.createObjectURL(file);
+        if (file.type.startsWith("image")) {
+          const img = document.createElement("img");
+          img.src = url;
+          mediaPreview.appendChild(img);
+        } else if (file.type.startsWith("video")) {
+          const vid = document.createElement("video");
+          vid.src = url;
+          vid.controls = true;
+          mediaPreview.appendChild(vid);
         } else {
-          const excess = file.size - maxSize;
-          const mo = Math.ceil(excess / (10 * 1024 * 1024)) * 10;
-          const price = (mo / 10) * 500;
-          alert(`Le fichier "${file.name}" dépasse 50Mo.\nMontant à payer : ${price} Ar\nPayez via MVola au numéro 0340894299.`);
+          alert("Seules les images et vidéos sont supportées.");
         }
       });
-    }
-
-    function uploadFile(file) {
-      const ref = storage.ref(`uploads/${currentUser.uid}/${file.name}`);
-      ref.put(file)
-        .then(() => alert(`Fichier "${file.name}" envoyé avec succès.`))
-        .catch(err => alert("Erreur : " + err.message));
-    }
+    });
   </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Mirindra Chat</title>
-  <style>
-    #chat-box {
-      border: 1px solid #ccc;
-      height: 300px;
-      overflow-y: scroll;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    #dropZone {
-      border: 2px dashed #ccc;
-      padding: 20px;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    #dropZone.hover {
-      border-color: #333;
-      background-color: #f0f0f0;
-    }
-  </style>
-</head>
-<body>
 
-  <h1>Mirindra Chat</h1>
-  <h3>Par Andrianarivelo Njara Mirindra Nirina</h3>
-
-  <div id="auth">
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Mot de passe" required />
-    <button id="registerBtn">Créer un compte</button>
-    <button id="loginBtn">Se connecter</button>
-    <button id="logoutBtn" style="display:none;">Déconnexion</button>
-  </div>
-
-  <div id="messaging" style="display:none;">
-    <h3>Bienvenue, <span id="currentUserEmail"></span></h3>
-    <div id="adminNotice"></div>
-
-    <input type="text" id="recipient" placeholder="Destinataire (email)" required />
-    <div id="chat-box"></div>
-
-    <form id="chat-form">
-      <input type="text" id="message" placeholder="Votre message" required />
-      <button type="submit">Envoyer</button>
-    </form>
-
-    <input type="file" id="fileInput" multiple />
-    <div id="dropZone">Glissez vos fichiers ici</div>
-  </div>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-
-  <script>
-    // Configuration Firebase
-    const firebaseConfig = {
-      apiKey: "mxrxndrv756",
-      authDomain: "mxrxndrv-messenger.mimi.com",
-      projectId: "mxrxndrv-message",
-      storageBucket: "mimi.com",
-      messagingSenderId: "19215678",
-      appId: "1:19215678:mimi:mxr12mi89"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-    const storage = firebase.storage();
-
-    // DOM
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const registerBtn = document.getElementById("registerBtn");
-    const loginBtn = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const chatForm = document.getElementById("chat-form");
-    const messageInput = document.getElementById("message");
-    const recipientInput = document.getElementById("recipient");
-    const chatBox = document.getElementById("chat-box");
-    const fileInput = document.getElementById("fileInput");
-    const dropZone = document.getElementById("dropZone");
-    const messagingDiv = document.getElementById("messaging");
-    const currentUserEmail = document.getElementById("currentUserEmail");
-    const adminNotice = document.getElementById("adminNotice");
-
-    let currentUser = null;
-
-    // Auth
-    registerBtn.onclick = () => {
-      auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .then(() => alert("Compte créé avec succès."))
-        .catch(err => alert(err.message));
-    };
-
-    loginBtn.onclick = () => {
-      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .catch(err => alert(err.message));
-    };
-
-    logoutBtn.onclick = () => auth.signOut();
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        messagingDiv.style.display = "block";
-        logoutBtn.style.display = "inline";
-        currentUserEmail.textContent = user.email;
-
-        // Marquage admin
-        if (user.email === "mxrxndrv@gmail.com") {
-          adminNotice.innerHTML = "<strong style='color:red;'>Connecté en tant qu'Administrateur</strong>";
-        } else {
-          adminNotice.innerHTML = "";
-        }
-
-        listenToMessages(user.email);
-      } else {
-        messagingDiv.style.display = "none";
-        logoutBtn.style.display = "none";
-        currentUser = null;
-      }
-    });
-
-    // Envoi message
-    chatForm.addEventListener("submit", function(e) {
-      e.preventDefault();
-      const message = messageInput.value;
-      const recipient = recipientInput.value;
-
-      db.collection("messages").add({
-        sender: currentUser.email,
-        recipient,
-        message,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      messageInput.value = "";
-    });
-
-    // Afficher messages
-    function listenToMessages(userEmail) {
-      db.collection("messages")
-        .where("recipient", "==", userEmail)
-        .orderBy("timestamp")
-        .onSnapshot(snapshot => {
-          chatBox.innerHTML = "";
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const div = document.createElement("div");
-            div.textContent = `${data.sender} : ${data.message}`;
-            chatBox.appendChild(div);
-          });
-        });
-    }
-
-    // Drag & drop
-    dropZone.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      dropZone.classList.add("hover");
-    });
-    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("hover"));
-    dropZone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      dropZone.classList.remove("hover");
-      handleFiles(e.dataTransfer.files);
-    });
-    fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
-
-    function handleFiles(files) {
-      Array.from(files).forEach(file => {
-        const maxSize = 50 * 1024 * 1024;
-        if (file.size <= maxSize) {
-          uploadFile(file);
-        } else {
-          const excess = file.size - maxSize;
-          const mo = Math.ceil(excess / (10 * 1024 * 1024)) * 10;
-          const price = (mo / 10) * 500;
-          alert(`Le fichier "${file.name}" dépasse 50Mo.\nMontant à payer : ${price} Ar\nPayez via MVola au numéro 0340894299.`);
-        }
-      });
-    }
-
-    function uploadFile(file) {
-      const ref = storage.ref(`uploads/${currentUser.uid}/${file.name}`);
-      ref.put(file)
-        .then(() => alert(`Fichier "${file.name}" envoyé avec succès.`))
-        .catch(err => alert("Erreur : " + err.message));
-    }
-  </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Mirindra Chat</title>
-  <style>
-    #chat-box {
-      border: 1px solid #ccc;
-      height: 300px;
-      overflow-y: scroll;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    #dropZone {
-      border: 2px dashed #ccc;
-      padding: 20px;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    #dropZone.hover {
-      border-color: #333;
-      background-color: #f0f0f0;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>Mirindra Chat</h1>
-  <h3>Par Andrianarivelo Njara Mirindra Nirina</h3>
-
-  <div id="auth">
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Mot de passe" required />
-    <button id="registerBtn">Créer un compte</button>
-    <button id="loginBtn">Se connecter</button>
-    <button id="logoutBtn" style="display:none;">Déconnexion</button>
-  </div>
-
-  <div id="messaging" style="display:none;">
-    <h3>Bienvenue, <span id="currentUserEmail"></span></h3>
-    <div id="adminNotice"></div>
-
-    <input type="text" id="recipient" placeholder="Destinataire (email)" required />
-    <div id="chat-box"></div>
-
-    <form id="chat-form">
-      <input type="text" id="message" placeholder="Votre message" required />
-      <button type="submit">Envoyer</button>
-    </form>
-
-    <input type="file" id="fileInput" multiple />
-    <div id="dropZone">Glissez vos fichiers ici</div>
-  </div>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-
-  <script>
-    // Configuration Firebase
-    const firebaseConfig = {
-      apiKey: "mxrxndrv756",
-      authDomain: "mxrxndrv-messenger.mimi.com",
-      projectId: "mxrxndrv-message",
-      storageBucket: "mimi.com",
-      messagingSenderId: "19215678",
-      appId: "1:19215678:mimi:mxr12mi89"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-    const storage = firebase.storage();
-
-    // DOM
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const registerBtn = document.getElementById("registerBtn");
-    const loginBtn = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const chatForm = document.getElementById("chat-form");
-    const messageInput = document.getElementById("message");
-    const recipientInput = document.getElementById("recipient");
-    const chatBox = document.getElementById("chat-box");
-    const fileInput = document.getElementById("fileInput");
-    const dropZone = document.getElementById("dropZone");
-    const messagingDiv = document.getElementById("messaging");
-    const currentUserEmail = document.getElementById("currentUserEmail");
-    const adminNotice = document.getElementById("adminNotice");
-
-    let currentUser = null;
-
-    // Auth
-    registerBtn.onclick = () => {
-      auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .then(() => alert("Compte créé avec succès."))
-        .catch(err => alert(err.message));
-    };
-
-    loginBtn.onclick = () => {
-      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .catch(err => alert(err.message));
-    };
-
-    logoutBtn.onclick = () => auth.signOut();
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        messagingDiv.style.display = "block";
-        logoutBtn.style.display = "inline";
-        currentUserEmail.textContent = user.email;
-
-        // Marquage admin
-        if (user.email === "mxrxndrv@gmail.com") {
-          adminNotice.innerHTML = "<strong style='color:red;'>Connecté en tant qu'Administrateur</strong>";
-        } else {
-          adminNotice.innerHTML = "";
-        }
-
-        listenToMessages(user.email);
-      } else {
-        messagingDiv.style.display = "none";
-        logoutBtn.style.display = "none";
-        currentUser = null;
-      }
-    });
-
-    // Envoi message
-    chatForm.addEventListener("submit", function(e) {
-      e.preventDefault();
-      const message = messageInput.value;
-      const recipient = recipientInput.value;
-
-      db.collection("messages").add({
-        sender: currentUser.email,
-        recipient,
-        message,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      messageInput.value = "";
-    });
-
-    // Afficher messages
-    function listenToMessages(userEmail) {
-      db.collection("messages")
-        .where("recipient", "==", userEmail)
-        .orderBy("timestamp")
-        .onSnapshot(snapshot => {
-          chatBox.innerHTML = "";
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const div = document.createElement("div");
-            div.textContent = `${data.sender} : ${data.message}`;
-            chatBox.appendChild(div);
-          });
-        });
-    }
-
-    // Drag & drop
-    dropZone.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      dropZone.classList.add("hover");
-    });
-    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("hover"));
-    dropZone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      dropZone.classList.remove("hover");
-      handleFiles(e.dataTransfer.files);
-    });
-    fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
-
-    function handleFiles(files) {
-      Array.from(files).forEach(file => {
-        const maxSize = 50 * 1024 * 1024;
-        if (file.size <= maxSize) {
-          uploadFile(file);
-        } else {
-          const excess = file.size - maxSize;
-          const mo = Math.ceil(excess / (10 * 1024 * 1024)) * 10;
-          const price = (mo / 10) * 500;
-          alert(`Le fichier "${file.name}" dépasse 50Mo.\nMontant à payer : ${price} Ar\nPayez via MVola au numéro 0340894299.`);
-        }
-      });
-    }
-
-    function uploadFile(file) {
-      const ref = storage.ref(`uploads/${currentUser.uid}/${file.name}`);
-      ref.put(file)
-        .then(() => alert(`Fichier "${file.name}" envoyé avec succès.`))
-        .catch(err => alert("Erreur : " + err.message));
-    }
-  </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Mirindra Chat</title>
-  <style>
-    #chat-box {
-      border: 1px solid #ccc;
-      height: 300px;
-      overflow-y: scroll;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    #dropZone {
-      border: 2px dashed #ccc;
-      padding: 20px;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    #dropZone.hover {
-      border-color: #333;
-      background-color: #f0f0f0;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>Mirindra Chat</h1>
-  <h3>Par Andrianarivelo Njara Mirindra Nirina</h3>
-
-  <div id="auth">
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Mot de passe" required />
-    <button id="registerBtn">Créer un compte</button>
-    <button id="loginBtn">Se connecter</button>
-    <button id="logoutBtn" style="display:none;">Déconnexion</button>
-  </div>
-
-  <div id="messaging" style="display:none;">
-    <h3>Bienvenue, <span id="currentUserEmail"></span></h3>
-    <div id="adminNotice"></div>
-
-    <input type="text" id="recipient" placeholder="Destinataire (email)" required />
-    <div id="chat-box"></div>
-
-    <form id="chat-form">
-      <input type="text" id="message" placeholder="Votre message" required />
-      <button type="submit">Envoyer</button>
-    </form>
-
-    <input type="file" id="fileInput" multiple />
-    <div id="dropZone">Glissez vos fichiers ici</div>
-  </div>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-
-  <script>
-    // Configuration Firebase
-    const firebaseConfig = {
-      apiKey: "mxrxndrv756",
-      authDomain: "mxrxndrv-messenger.mimi.com",
-      projectId: "mxrxndrv-message",
-      storageBucket: "mimi.com",
-      messagingSenderId: "19215678",
-      appId: "1:19215678:mimi:mxr12mi89"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-    const storage = firebase.storage();
-
-    // DOM
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const registerBtn = document.getElementById("registerBtn");
-    const loginBtn = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const chatForm = document.getElementById("chat-form");
-    const messageInput = document.getElementById("message");
-    const recipientInput = document.getElementById("recipient");
-    const chatBox = document.getElementById("chat-box");
-    const fileInput = document.getElementById("fileInput");
-    const dropZone = document.getElementById("dropZone");
-    const messagingDiv = document.getElementById("messaging");
-    const currentUserEmail = document.getElementById("currentUserEmail");
-    const adminNotice = document.getElementById("adminNotice");
-
-    let currentUser = null;
-
-    // Auth
-    registerBtn.onclick = () => {
-      auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .then(() => alert("Compte créé avec succès."))
-        .catch(err => alert(err.message));
-    };
-
-    loginBtn.onclick = () => {
-      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .catch(err => alert(err.message));
-    };
-
-    logoutBtn.onclick = () => auth.signOut();
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        messagingDiv.style.display = "block";
-        logoutBtn.style.display = "inline";
-        currentUserEmail.textContent = user.email;
-
-        // Marquage admin
-        if (user.email === "mxrxndrv@gmail.com") {
-          adminNotice.innerHTML = "<strong style='color:red;'>Connecté en tant qu'Administrateur</strong>";
-        } else {
-          adminNotice.innerHTML = "";
-        }
-
-        listenToMessages(user.email);
-      } else {
-        messagingDiv.style.display = "none";
-        logoutBtn.style.display = "none";
-        currentUser = null;
-      }
-    });
-
-    // Envoi message
-    chatForm.addEventListener("submit", function(e) {
-      e.preventDefault();
-      const message = messageInput.value;
-      const recipient = recipientInput.value;
-
-      db.collection("messages").add({
-        sender: currentUser.email,
-        recipient,
-        message,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      messageInput.value = "";
-    });
-
-    // Afficher messages
-    function listenToMessages(userEmail) {
-      db.collection("messages")
-        .where("recipient", "==", userEmail)
-        .orderBy("timestamp")
-        .onSnapshot(snapshot => {
-          chatBox.innerHTML = "";
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const div = document.createElement("div");
-            div.textContent = `${data.sender} : ${data.message}`;
-            chatBox.appendChild(div);
-          });
-        });
-    }
-
-    // Drag & drop
-    dropZone.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      dropZone.classList.add("hover");
-    });
-    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("hover"));
-    dropZone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      dropZone.classList.remove("hover");
-      handleFiles(e.dataTransfer.files);
-    });
-    fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
-
-    function handleFiles(files) {
-      Array.from(files).forEach(file => {
-        const maxSize = 50 * 1024 * 1024;
-        if (file.size <= maxSize) {
-          uploadFile(file);
-        } else {
-          const excess = file.size - maxSize;
-          const mo = Math.ceil(excess / (10 * 1024 * 1024)) * 10;
-          const price = (mo / 10) * 500;
-          alert(`Le fichier "${file.name}" dépasse 50Mo.\nMontant à payer : ${price} Ar\nPayez via MVola au numéro 0340894299.`);
-        }
-      });
-    }
-
-    function uploadFile(file) {
-      const ref = storage.ref(`uploads/${currentUser.uid}/${file.name}`);
-      ref.put(file)
-        .then(() => alert(`Fichier "${file.name}" envoyé avec succès.`))
-        .catch(err => alert("Erreur : " + err.message));
-    }
-  </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Mirindra Chat</title>
-  <style>
-    #chat-box {
-      border: 1px solid #ccc;
-      height: 300px;
-      overflow-y: scroll;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    #dropZone {
-      border: 2px dashed #ccc;
-      padding: 20px;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    #dropZone.hover {
-      border-color: #333;
-      background-color: #f0f0f0;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>Mirindra Chat</h1>
-  <h3>Par Andrianarivelo Njara Mirindra Nirina</h3>
-
-  <div id="auth">
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Mot de passe" required />
-    <button id="registerBtn">Créer un compte</button>
-    <button id="loginBtn">Se connecter</button>
-    <button id="logoutBtn" style="display:none;">Déconnexion</button>
-  </div>
-
-  <div id="messaging" style="display:none;">
-    <h3>Bienvenue, <span id="currentUserEmail"></span></h3>
-    <div id="adminNotice"></div>
-
-    <input type="text" id="recipient" placeholder="Destinataire (email)" required />
-    <div id="chat-box"></div>
-
-    <form id="chat-form">
-      <input type="text" id="message" placeholder="Votre message" required />
-      <button type="submit">Envoyer</button>
-    </form>
-
-    <input type="file" id="fileInput" multiple />
-    <div id="dropZone">Glissez vos fichiers ici</div>
-  </div>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-
-  <script>
-    // Configuration Firebase
-    const firebaseConfig = {
-      apiKey: "mxrxndrv756",
-      authDomain: "mxrxndrv-messenger.mimi.com",
-      projectId: "mxrxndrv-message",
-      storageBucket: "mimi.com",
-      messagingSenderId: "19215678",
-      appId: "1:19215678:mimi:mxr12mi89"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-    const storage = firebase.storage();
-
-    // DOM
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const registerBtn = document.getElementById("registerBtn");
-    const loginBtn = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const chatForm = document.getElementById("chat-form");
-    const messageInput = document.getElementById("message");
-    const recipientInput = document.getElementById("recipient");
-    const chatBox = document.getElementById("chat-box");
-    const fileInput = document.getElementById("fileInput");
-    const dropZone = document.getElementById("dropZone");
-    const messagingDiv = document.getElementById("messaging");
-    const currentUserEmail = document.getElementById("currentUserEmail");
-    const adminNotice = document.getElementById("adminNotice");
-
-    let currentUser = null;
-
-    // Auth
-    registerBtn.onclick = () => {
-      auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .then(() => alert("Compte créé avec succès."))
-        .catch(err => alert(err.message));
-    };
-
-    loginBtn.onclick = () => {
-      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .catch(err => alert(err.message));
-    };
-
-    logoutBtn.onclick = () => auth.signOut();
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        messagingDiv.style.display = "block";
-        logoutBtn.style.display = "inline";
-        currentUserEmail.textContent = user.email;
-
-        // Marquage admin
-        if (user.email === "mxrxndrv@gmail.com") {
-          adminNotice.innerHTML = "<strong style='color:red;'>Connecté en tant qu'Administrateur</strong>";
-        } else {
-          adminNotice.innerHTML = "";
-        }
-
-        listenToMessages(user.email);
-      } else {
-        messagingDiv.style.display = "none";
-        logoutBtn.style.display = "none";
-        currentUser = null;
-      }
-    });
-
-    // Envoi message
-    chatForm.addEventListener("submit", function(e) {
-      e.preventDefault();
-      const message = messageInput.value;
-      const recipient = recipientInput.value;
-
-      db.collection("messages").add({
-        sender: currentUser.email,
-        recipient,
-        message,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      messageInput.value = "";
-    });
-
-    // Afficher messages
-    function listenToMessages(userEmail) {
-      db.collection("messages")
-        .where("recipient", "==", userEmail)
-        .orderBy("timestamp")
-        .onSnapshot(snapshot => {
-          chatBox.innerHTML = "";
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const div = document.createElement("div");
-            div.textContent = `${data.sender} : ${data.message}`;
-            chatBox.appendChild(div);
-          });
-        });
-    }
-
-    // Drag & drop
-    dropZone.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      dropZone.classList.add("hover");
-    });
-    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("hover"));
-    dropZone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      dropZone.classList.remove("hover");
-      handleFiles(e.dataTransfer.files);
-    });
-    fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
-
-    function handleFiles(files) {
-      Array.from(files).forEach(file => {
-        const maxSize = 50 * 1024 * 1024;
-        if (file.size <= maxSize) {
-          uploadFile(file);
-        } else {
-          const excess = file.size - maxSize;
-          const mo = Math.ceil(excess / (10 * 1024 * 1024)) * 10;
-          const price = (mo / 10) * 500;
-          alert(`Le fichier "${file.name}" dépasse 50Mo.\nMontant à payer : ${price} Ar\nPayez via MVola au numéro 0340894299.`);
-        }
-      });
-    }
-
-    function uploadFile(file) {
-      const ref = storage.ref(`uploads/${currentUser.uid}/${file.name}`);
-      ref.put(file)
-        .then(() => alert(`Fichier "${file.name}" envoyé avec succès.`))
-        .catch(err => alert("Erreur : " + err.message));
-    }
-  </script>
-</body>
-</html><!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Mirindra Chat</title>
-  <style>
-    #chat-box {
-      border: 1px solid #ccc;
-      height: 300px;
-      overflow-y: scroll;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    #dropZone {
-      border: 2px dashed #ccc;
-      padding: 20px;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    #dropZone.hover {
-      border-color: #333;
-      background-color: #f0f0f0;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>Mirindra Chat</h1>
-  <h3>Par Andrianarivelo Njara Mirindra Nirina</h3>
-
-  <div id="auth">
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Mot de passe" required />
-    <button id="registerBtn">Créer un compte</button>
-    <button id="loginBtn">Se connecter</button>
-    <button id="logoutBtn" style="display:none;">Déconnexion</button>
-  </div>
-
-  <div id="messaging" style="display:none;">
-    <h3>Bienvenue, <span id="currentUserEmail"></span></h3>
-    <div id="adminNotice"></div>
-
-    <input type="text" id="recipient" placeholder="Destinataire (email)" required />
-    <div id="chat-box"></div>
-
-    <form id="chat-form">
-      <input type="text" id="message" placeholder="Votre message" required />
-      <button type="submit">Envoyer</button>
-    </form>
-
-    <input type="file" id="fileInput" multiple />
-    <div id="dropZone">Glissez vos fichiers ici</div>
-  </div>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-
-  <script>
-    // Configuration Firebase
-    const firebaseConfig = {
-      apiKey: "mxrxndrv756",
-      authDomain: "mxrxndrv-messenger.mimi.com",
-      projectId: "mxrxndrv-message",
-      storageBucket: "mimi.com",
-      messagingSenderId: "19215678",
-      appId: "1:19215678:mimi:mxr12mi89"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-    const storage = firebase.storage();
-
-    // DOM
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const registerBtn = document.getElementById("registerBtn");
-    const loginBtn = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const chatForm = document.getElementById("chat-form");
-    const messageInput = document.getElementById("message");
-    const recipientInput = document.getElementById("recipient");
-    const chatBox = document.getElementById("chat-box");
-    const fileInput = document.getElementById("fileInput");
-    const dropZone = document.getElementById("dropZone");
-    const messagingDiv = document.getElementById("messaging");
-    const currentUserEmail = document.getElementById("currentUserEmail");
-    const adminNotice = document.getElementById("adminNotice");
-
-    let currentUser = null;
-
-    // Auth
-    registerBtn.onclick = () => {
-      auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .then(() => alert("Compte créé avec succès."))
-        .catch(err => alert(err.message));
-    };
-
-    loginBtn.onclick = () => {
-      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .catch(err => alert(err.message));
-    };
-
-    logoutBtn.onclick = () => auth.signOut();
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        messagingDiv.style.display = "block";
-        logoutBtn.style.display = "inline";
-        currentUserEmail.textContent = user.email;
-
-        // Marquage admin
-        if (user.email === "mxrxndrv@gmail.com") {
-          adminNotice.innerHTML = "<strong style='color:red;'>Connecté en tant qu'Administrateur</strong>";
-        } else {
-          adminNotice.innerHTML = "";
-        }
-
-        listenToMessages(user.email);
-      } else {
-        messagingDiv.style.display = "none";
-        logoutBtn.style.display = "none";
-        currentUser = null;
-      }
-    });
-
-    // Envoi message
-    chatForm.addEventListener("submit", function(e) {
-      e.preventDefault();
-      const message = messageInput.value;
-      const recipient = recipientInput.value;
-
-      db.collection("messages").add({
-        sender: currentUser.email,
-        recipient,
-        message,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      messageInput.value = "";
-    });
-
-    // Afficher messages
-    function listenToMessages(userEmail) {
-      db.collection("messages")
-        .where("recipient", "==", userEmail)
-        .orderBy("timestamp")
-        .onSnapshot(snapshot => {
-          chatBox.innerHTML = "";
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const div = document.createElement("div");
-            div.textContent = `${data.sender} : ${data.message}`;
-            chatBox.appendChild(div);
-          });
-        });
-    }
-
-    // Drag & drop
-    dropZone.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      dropZone.classList.add("hover");
-    });
-    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("hover"));
-    dropZone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      dropZone.classList.remove("hover");
-      handleFiles(e.dataTransfer.files);
-    });
-    fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
-
-    function handleFiles(files) {
-      Array.from(files).forEach(file => {
-        const maxSize = 50 * 1024 * 1024;
-        if (file.size <= maxSize) {
-          uploadFile(file);
-        } else {
-          const excess = file.size - maxSize;
-          const mo = Math.ceil(excess / (10 * 1024 * 1024)) * 10;
-          const price = (mo / 10) * 500;
-          alert(`Le fichier "${file.name}" dépasse 50Mo.\nMontant à payer : ${price} Ar\nPayez via MVola au numéro 0340894299.`);
-        }
-      });
-    }
-
-    function uploadFile(file) {
-      const ref = storage.ref(`uploads/${currentUser.uid}/${file.name}`);
-      ref.put(file)
-        .then(() => alert(`Fichier "${file.name}" envoyé avec succès.`))
-        .catch(err => alert("Erreur : " + err.message));
-    }
-  </script>
-</body>
-  </html><!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <title>Mirindra Chat</title>
-  <style>
-    #chat-box {
-      border: 1px solid #ccc;
-      height: 300px;
-      overflow-y: scroll;
-      padding: 10px;
-      margin-bottom: 10px;
-    }
-    #dropZone {
-      border: 2px dashed #ccc;
-      padding: 20px;
-      text-align: center;
-      margin-bottom: 10px;
-    }
-    #dropZone.hover {
-      border-color: #333;
-      background-color: #f0f0f0;
-    }
-  </style>
-</head>
-<body>
-
-  <h1>Mirindra Chat</h1>
-  <h3>Par Andrianarivelo Njara Mirindra Nirina</h3>
-
-  <div id="auth">
-    <input type="email" id="email" placeholder="Email" required />
-    <input type="password" id="password" placeholder="Mot de passe" required />
-    <button id="registerBtn">Créer un compte</button>
-    <button id="loginBtn">Se connecter</button>
-    <button id="logoutBtn" style="display:none;">Déconnexion</button>
-  </div>
-
-  <div id="messaging" style="display:none;">
-    <h3>Bienvenue, <span id="currentUserEmail"></span></h3>
-    <div id="adminNotice"></div>
-
-    <input type="text" id="recipient" placeholder="Destinataire (email)" required />
-    <div id="chat-box"></div>
-
-    <form id="chat-form">
-      <input type="text" id="message" placeholder="Votre message" required />
-      <button type="submit">Envoyer</button>
-    </form>
-
-    <input type="file" id="fileInput" multiple />
-    <div id="dropZone">Glissez vos fichiers ici</div>
-  </div>
-
-  <!-- Firebase -->
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-storage.js"></script>
-
-  <script>
-    // Configuration Firebase
-    const firebaseConfig = {
-      apiKey: "mxrxndrv756",
-      authDomain: "mxrxndrv-messenger.mimi.com",
-      projectId: "mxrxndrv-message",
-      storageBucket: "mimi.com",
-      messagingSenderId: "19215678",
-      appId: "1:19215678:mimi:mxr12mi89"
-    };
-
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const auth = firebase.auth();
-    const storage = firebase.storage();
-
-    // DOM
-    const emailInput = document.getElementById("email");
-    const passwordInput = document.getElementById("password");
-    const registerBtn = document.getElementById("registerBtn");
-    const loginBtn = document.getElementById("loginBtn");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const chatForm = document.getElementById("chat-form");
-    const messageInput = document.getElementById("message");
-    const recipientInput = document.getElementById("recipient");
-    const chatBox = document.getElementById("chat-box");
-    const fileInput = document.getElementById("fileInput");
-    const dropZone = document.getElementById("dropZone");
-    const messagingDiv = document.getElementById("messaging");
-    const currentUserEmail = document.getElementById("currentUserEmail");
-    const adminNotice = document.getElementById("adminNotice");
-
-    let currentUser = null;
-
-    // Auth
-    registerBtn.onclick = () => {
-      auth.createUserWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .then(() => alert("Compte créé avec succès."))
-        .catch(err => alert(err.message));
-    };
-
-    loginBtn.onclick = () => {
-      auth.signInWithEmailAndPassword(emailInput.value, passwordInput.value)
-        .catch(err => alert(err.message));
-    };
-
-    logoutBtn.onclick = () => auth.signOut();
-
-    auth.onAuthStateChanged(user => {
-      if (user) {
-        currentUser = user;
-        messagingDiv.style.display = "block";
-        logoutBtn.style.display = "inline";
-        currentUserEmail.textContent = user.email;
-
-        // Marquage admin
-        if (user.email === "mxrxndrv@gmail.com") {
-          adminNotice.innerHTML = "<strong style='color:red;'>Connecté en tant qu'Administrateur</strong>";
-        } else {
-          adminNotice.innerHTML = "";
-        }
-
-        listenToMessages(user.email);
-      } else {
-        messagingDiv.style.display = "none";
-        logoutBtn.style.display = "none";
-        currentUser = null;
-      }
-    });
-
-    // Envoi message
-    chatForm.addEventListener("submit", function(e) {
-      e.preventDefault();
-      const message = messageInput.value;
-      const recipient = recipientInput.value;
-
-      db.collection("messages").add({
-        sender: currentUser.email,
-        recipient,
-        message,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      });
-
-      messageInput.value = "";
-    });
-
-    // Afficher messages
-    function listenToMessages(userEmail) {
-      db.collection("messages")
-        .where("recipient", "==", userEmail)
-        .orderBy("timestamp")
-        .onSnapshot(snapshot => {
-          chatBox.innerHTML = "";
-          snapshot.forEach(doc => {
-            const data = doc.data();
-            const div = document.createElement("div");
-            div.textContent = `${data.sender} : ${data.message}`;
-            chatBox.appendChild(div);
-          });
-        });
-    }
-
-    // Drag & drop
-    dropZone.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      dropZone.classList.add("hover");
-    });
-    dropZone.addEventListener("dragleave", () => dropZone.classList.remove("hover"));
-    dropZone.addEventListener("drop", (e) => {
-      e.preventDefault();
-      dropZone.classList.remove("hover");
-      handleFiles(e.dataTransfer.files);
-    });
-    fileInput.addEventListener("change", (e) => handleFiles(e.target.files));
-
-    function handleFiles(files) {
-      Array.from(files).forEach(file => {
-        const maxSize = 50 * 1024 * 1024;
-        if (file.size <= maxSize) {
-          uploadFile(file);
-        } else {
-          const excess = file.size - maxSize;
-          const mo = Math.ceil(excess / (10 * 1024 * 1024)) * 10;
-          const price = (mo / 10) * 500;
-          alert(`Le fichier "${file.name}" dépasse 50Mo.\nMontant à payer : ${price} Ar\nPayez via MVola au numéro 0340894299.`);
-        }
-      });
-    }
-
-    function uploadFile(file) {
-      const ref = storage.ref(`uploads/${currentUser.uid}/${file.name}`);
-      ref.put(file)
-        .then(() => alert(`Fichier "${file.name}" envoyé avec succès.`))
-        .catch(err => alert("Erreur : " + err.message));
-    }
-  </script>
 </body>
 </html>
