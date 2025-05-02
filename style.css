@@ -1,0 +1,29 @@
+body {
+  font-family: Arial;
+  background-color: #8C8C8C;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+}
+
+#chat-box {
+  background: blue;
+  width: 80%;
+  height: 300px;
+  margin: 20px auto;
+  overflow-y: scroll;
+  border: 1px solid #ccc;
+  padding: 10px;
+}
+
+form {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  padding: 10px;
+}
+
+input, button {
+  padding: 10px;
+  font-size: 16px;
+}
