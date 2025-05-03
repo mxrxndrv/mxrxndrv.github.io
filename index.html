@@ -1,89 +1,116 @@
-<!DOCTYPE html><html lang="fr">
+<!DOCTYPE html>
+<html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mirindra Chat</title>
   <style>
     body {
       font-family: sans-serif;
-      background: #f0f0f0;
+      background: #f4f4f4;
       margin: 0;
-      padding: 0;
-      overflow-x: hidden;
     }
     header {
-      background-color: #6200ea;
+      background: #6200ea;
       color: white;
-      padding: 1rem;
+      padding: 1em;
       text-align: center;
-      font-size: 1.5rem;
+      font-size: 1.5em;
+    }
+    nav {
+      display: flex;
+      justify-content: space-around;
+      background: #ddd;
+      padding: 0.5em;
+    }
+    nav button {
+      background: #fff;
+      border: none;
+      padding: 0.5em 1em;
+      cursor: pointer;
+      font-weight: bold;
+    }
+    .tab {
+      display: none;
+      padding: 1em;
+    }
+    .tab.active {
+      display: block;
     }
     #chat-box {
-      height: 60vh;
+      height: 50vh;
       overflow-y: auto;
-      padding: 1rem;
       background: white;
-      margin: 1rem;
       border-radius: 10px;
+      padding: 1em;
+    }
+    .message, .media {
+      margin-bottom: 10px;
+      background: #eee;
+      padding: 10px;
+      border-radius: 5px;
+    }
+    .media img, .media video {
+      max-width: 100%;
+      margin-top: 5px;
+      border-radius: 5px;
     }
     form {
       display: flex;
-      gap: 10px;
-      padding: 1rem;
-      background: #ffffff;
-      border-top: 1px solid #ccc;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 10px;
     }
-    input[type="text"], input[type="file"] {
-      flex: 1;
-      padding: 0.5rem;
+    input, button {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
     }
     button {
-      padding: 0.5rem 1rem;
       background-color: #6200ea;
       color: white;
       border: none;
-      cursor: pointer;
     }
-    .emoji-container {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      overflow: hidden;
-      z-index: -1;
+    .user-block {
+      margin-bottom: 20px;
     }
-    .emoji {
-      position: absolute;
-      font-size: 2rem;
-      animation: float 10s linear infinite;
-    }
-    @keyframes float {
-      0% {
-        transform: translateY(100vh);
-        opacity: 0;
-      }
-      50% {
-        opacity: 1;
-      }
-      100% {
-        transform: translateY(-10vh);
-        opacity: 0;
-      }
+    .username-label {
+      font-weight: bold;
+      margin-top: 10px;
     }
   </style>
 </head>
 <body>
   <header>Mirindra Chat</header>
-  <div id="chat-box"></div>
-  <form id="chat-form">
-    <input type="text" id="message" placeholder="Votre message" required />
-    <input type="file" id="image-upload" accept="image/*">
-    <button type="submit">Envoyer</button>
-  </form>
-  <div class="emoji-container" id="emoji-container"></div>  <!-- Firebase SDK -->  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>  <script>
-    // Firebase Config
+  <nav>
+    <button onclick="switchTab('chat')">Discussion</button>
+    <button onclick="switchTab('about')">À propos</button>
+  </nav>
+
+  <div class="tab active" id="chat-tab">
+    <form id="chat-form">
+      <input type="text" id="chat-username" placeholder="Ton nom" required />
+      <input type="text" id="chat-message" placeholder="Ton message" />
+      <input type="file" id="chat-image" accept="image/*" />
+      <button type="submit">Envoyer</button>
+    </form>
+    <div id="chat-box"></div>
+  </div>
+
+  <div class="tab" id="about-tab">
+    <form id="upload-form">
+      <input type="text" id="upload-username" placeholder="Ton nom" required />
+      <input type="file" id="media-file" accept="image/*,video/*" />
+      <button type="submit">Envoyer un fichier</button>
+    </form>
+    <div id="media-gallery"></div>
+  </div>
+
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
+    import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-storage.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyAvajbCbTZ6826H0yIuz7S6MvvQ7sCec_M",
       authDomain: "mxrxndrv-discu.firebaseapp.com",
@@ -94,70 +121,112 @@
       measurementId: "G-0GCH72QW09"
     };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const storage = firebase.storage();
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
 
-    const chatBox = document.getElementById("chat-box");
+    // --- Chat ---
     const chatForm = document.getElementById("chat-form");
-    const messageInput = document.getElementById("message");
-    const imageInput = document.getElementById("image-upload");
+    const chatBox = document.getElementById("chat-box");
 
     chatForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const msg = messageInput.value;
-      const imageFile = imageInput.files[0];
-      let imageUrl = null;
+      const username = document.getElementById("chat-username").value.trim();
+      const message = document.getElementById("chat-message").value.trim();
+      const image = document.getElementById("chat-image").files[0];
 
-      if (imageFile) {
-        const ref = storage.ref().child(`images/${Date.now()}_${imageFile.name}`);
-        await ref.put(imageFile);
-        imageUrl = await ref.getDownloadURL();
+      let imageUrl = null;
+      if (image) {
+        const refImg = ref(storage, "chat/" + Date.now() + "_" + image.name);
+        await uploadBytes(refImg, image);
+        imageUrl = await getDownloadURL(refImg);
       }
 
-      await db.collection("messages").add({
-        pseudo: "Anonyme",
-        message: msg,
-        imageUrl: imageUrl,
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      await addDoc(collection(db, "messages"), {
+        username,
+        message,
+        imageUrl,
+        timestamp: serverTimestamp()
       });
 
       chatForm.reset();
     });
 
-    db.collection("messages").orderBy("timestamp", "asc")
-      .onSnapshot(snapshot => {
-        chatBox.innerHTML = "";
-        snapshot.forEach(doc => {
-          const data = doc.data();
-          const div = document.createElement("div");
-          div.innerHTML = `<strong>${data.pseudo}:</strong> ${data.message}`;
-          if (data.imageUrl) {
-            const img = document.createElement("img");
-            img.src = data.imageUrl;
-            img.style.maxWidth = "200px";
-            img.style.display = "block";
-            div.appendChild(img);
-          }
-          chatBox.appendChild(div);
-        });
-        chatBox.scrollTop = chatBox.scrollHeight;
+    onSnapshot(query(collection(db, "messages"), orderBy("timestamp")), (snapshot) => {
+      chatBox.innerHTML = "";
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        const div = document.createElement("div");
+        div.className = "message";
+        div.innerHTML = `<strong>${data.username}:</strong> ${data.message || ""}`;
+        if (data.imageUrl) {
+          const img = document.createElement("img");
+          img.src = data.imageUrl;
+          div.appendChild(img);
+        }
+        chatBox.appendChild(div);
+      });
+      chatBox.scrollTop = chatBox.scrollHeight;
+    });
+
+    // --- À propos / Galerie ---
+    const uploadForm = document.getElementById("upload-form");
+    const mediaGallery = document.getElementById("media-gallery");
+
+    uploadForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const username = document.getElementById("upload-username").value.trim();
+      const file = document.getElementById("media-file").files[0];
+      if (!file) return;
+
+      const fileRef = ref(storage, `gallery/${username}/${Date.now()}_${file.name}`);
+      await uploadBytes(fileRef, file);
+      const url = await getDownloadURL(fileRef);
+
+      await addDoc(collection(db, "gallery"), {
+        username,
+        url,
+        type: file.type.startsWith("video") ? "video" : "image",
+        timestamp: serverTimestamp()
       });
 
-    // Emoji animation
-    const emojis = ["❤️", "✨", "🔥", "😊", "🎉", "🌟", "💬", "🚀"];
-    const emojiContainer = document.getElementById("emoji-container");
+      uploadForm.reset();
+    });
 
-    function createEmoji() {
-      const emoji = document.createElement("div");
-      emoji.classList.add("emoji");
-      emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
-      emoji.style.left = Math.random() * 100 + "vw";
-      emoji.style.animationDuration = 5 + Math.random() * 5 + "s";
-      emojiContainer.appendChild(emoji);
-      setTimeout(() => emoji.remove(), 10000);
+    onSnapshot(query(collection(db, "gallery"), orderBy("timestamp", "desc")), (snapshot) => {
+      const userGroups = {};
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (!userGroups[data.username]) userGroups[data.username] = [];
+        userGroups[data.username].push(data);
+      });
+
+      mediaGallery.innerHTML = "";
+      for (const user in userGroups) {
+        const userBlock = document.createElement("div");
+        userBlock.className = "user-block";
+        userBlock.innerHTML = `<div class="username-label">${user}</div>`;
+
+        userGroups[user].forEach(file => {
+          const div = document.createElement("div");
+          div.className = "media";
+          if (file.type === "video") {
+            div.innerHTML = `<video src="${file.url}" controls></video>`;
+          } else {
+            div.innerHTML = `<img src="${file.url}" alt="image" />`;
+          }
+          userBlock.appendChild(div);
+        });
+
+        mediaGallery.appendChild(userBlock);
+      }
+    });
+
+    // --- Onglets ---
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+      document.getElementById(tabId + "-tab").classList.add("active");
     }
-
-    setInterval(createEmoji, 600);
-  </script></body>
+  </script>
+</body>
 </html>
