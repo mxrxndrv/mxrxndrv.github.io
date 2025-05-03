@@ -2,14 +2,14 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Mirindra Chat</title>
   <style>
     body {
       margin: 0;
       font-family: Arial, sans-serif;
-      background: #f9f9f9;
-      overflow-x: hidden;
+      background: #f0f0f0;
+      overflow: hidden;
     }
     header {
       background-color: #6200ee;
@@ -17,7 +17,6 @@
       padding: 1rem;
       text-align: center;
       font-size: 24px;
-      position: relative;
     }
     nav {
       display: flex;
@@ -47,24 +46,33 @@
       margin-bottom: 1rem;
       background: white;
     }
-    .emoji-bg {
+    .emoji-container {
       position: fixed;
       top: 0;
       left: 0;
-      z-index: -1;
       width: 100%;
       height: 100%;
-      font-size: 50px;
-      opacity: 0.2;
-      animation: float 20s linear infinite;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: -1;
+    }
+    .emoji {
+      position: absolute;
+      font-size: 2rem;
+      animation: float 10s linear infinite;
     }
     @keyframes float {
-      0% { transform: translateY(100%); }
-      100% { transform: translateY(-100%); }
-    }
-    .emoji-bg span {
-      display: inline-block;
-      margin: 10px;
+      0% {
+        transform: translateY(100vh) translateX(0);
+        opacity: 0;
+      }
+      50% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-10vh) translateX(0);
+        opacity: 0;
+      }
     }
     .gallery img {
       width: 100px;
@@ -75,10 +83,7 @@
 </head>
 <body>
 
-<div class="emoji-bg">
-  <span>❤️</span><span>✨</span><span>‍🔥</span><span>‍</span><span>‍☁️</span><span>‍</span>
-  <span>‍</span><span>‍</span><span>‍</span><span>‍</span><span>‍</span>
-</div>
+<div class="emoji-container" id="emoji-container"></div>
 
 <header>Mirindra Chat</header>
 <nav>
@@ -116,23 +121,24 @@
 <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
 
 <script>
+  // Configuration Firebase
   const firebaseConfig = {
     apiKey: "AIzaSyAvajbCbTZ6826H0yIuz7S6MvvQ7sCec_M",
     authDomain: "mxrxndrv-discu.firebaseapp.com",
     projectId: "mxrxndrv-discu",
-    storageBucket: "mxrxndrv-discu.firebasestorage.app",
+    storageBucket: "mxrxndrv-discu.appspot.com",
     messagingSenderId: "904395586988",
     appId: "1:904395586988:web:d790c830a7dc7feb3ace09",
     measurementId: "G-0GCH72QW09"
   };
 
+  // Initialisation Firebase
   firebase.initializeApp(firebaseConfig);
   const db = firebase.firestore();
   const auth = firebase.auth();
 
   let currentUser = null;
   let pseudo = prompt("Entre ton nom d'utilisateur :");
-
   if (!pseudo) pseudo = "Anonyme";
 
   auth.signInAnonymously().then(() => {
@@ -146,10 +152,11 @@
   chatForm.addEventListener("submit", (e) => {
     e.preventDefault();
     const msg = document.getElementById("message").value;
+    if (msg.trim() === "") return;
     db.collection("messages").add({
       pseudo: currentUser,
       message: msg,
-      timestamp: Date.now()
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
     chatForm.reset();
   });
@@ -171,6 +178,24 @@
     document.querySelectorAll("section").forEach(s => s.classList.remove("active"));
     document.getElementById(id).classList.add("active");
   }
+
+  // Animation des émojis
+  const emojis = ["❤️", "✨", "🔥", "😊", "🎉", "🌟", "💬", "🚀"];
+  const emojiContainer = document.getElementById("emoji-container");
+
+  function createEmoji() {
+    const emoji = document.createElement("div");
+    emoji.classList.add("emoji");
+    emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    emoji.style.left = Math.random() * 100 + "vw";
+    emoji.style.animationDuration = 5 + Math.random() * 5 + "s";
+    emojiContainer.appendChild(emoji);
+    setTimeout(() => {
+      emoji.remove();
+    }, 10000);
+  }
+
+  setInterval(createEmoji, 500);
 </script>
 </body>
 </html>
