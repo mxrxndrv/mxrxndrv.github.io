@@ -84,9 +84,17 @@
   <nav>
     <button onclick="switchTab('chat')">Discussion</button>
     <button onclick="switchTab('about')">À propos</button>
+    <button onclick="switchTab('gallery')">Galerie</button>
+    <button onclick="switchTab('upload')">Envoi de fichiers</button>
   </nav>
 
-  <div class="tab active" id="chat-tab">
+  <div id="auth-buttons">
+    <button id="google-login">Connexion avec Google</button>
+    <button id="facebook-login">Connexion avec Facebook</button>
+    <button id="instagram-login">Connexion avec Instagram</button>
+  </div>
+
+  <div class="tab" id="chat-tab">
     <form id="chat-form">
       <input type="text" id="chat-username" placeholder="Ton nom" required />
       <input type="text" id="chat-message" placeholder="Ton message" />
@@ -97,19 +105,26 @@
   </div>
 
   <div class="tab" id="about-tab">
+    <p>Ce site a été créé par Mirindra pour permettre aux utilisateurs de discuter et partager.</p>
+  </div>
+
+  <div class="tab" id="gallery-tab">
+    <div id="media-gallery"></div>
+  </div>
+
+  <div class="tab" id="upload-tab">
     <form id="upload-form">
       <input type="text" id="upload-username" placeholder="Ton nom" required />
       <input type="file" id="media-file" accept="image/*,video/*" />
       <button type="submit">Envoyer un fichier</button>
     </form>
-    <div id="media-gallery"></div>
   </div>
 
-  <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-storage.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAvajbCbTZ6826H0yIuz7S6MvvQ7sCec_M",
@@ -117,15 +132,48 @@
       projectId: "mxrxndrv-discu",
       storageBucket: "mxrxndrv-discu.appspot.com",
       messagingSenderId: "904395586988",
-      appId: "1:904395586988:web:d790c830a7dc7feb3ace09",
-      measurementId: "G-0GCH72QW09"
+      appId: "1:904395586988:web:d790c830a7dc7feb3ace09"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
     const storage = getStorage(app);
+    const auth = getAuth();
 
-    // --- Chat ---
+    // Authentification Google
+    const googleProvider = new GoogleAuthProvider();
+    document.getElementById("google-login").addEventListener("click", () => {
+      signInWithPopup(auth, googleProvider);
+    });
+
+    // Authentification Facebook
+    const facebookProvider = new FacebookAuthProvider();
+    document.getElementById("facebook-login").addEventListener("click", () => {
+      signInWithPopup(auth, facebookProvider);
+    });
+
+    // Authentification Instagram (à compléter avec backend personnalisé)
+    document.getElementById("instagram-login").addEventListener("click", () => {
+      alert("Connexion Instagram non disponible directement via Firebase. Veuillez implémenter un backend.");
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        document.getElementById("auth-buttons").style.display = "none";
+        document.querySelectorAll(".tab").forEach(t => t.style.display = "block");
+        switchTab('chat');
+      } else {
+        document.getElementById("auth-buttons").style.display = "block";
+        document.querySelectorAll(".tab").forEach(t => t.style.display = "none");
+      }
+    });
+
+    function switchTab(tabId) {
+      document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
+      document.getElementById(tabId + "-tab").classList.add("active");
+    }
+
+    // Chat
     const chatForm = document.getElementById("chat-form");
     const chatBox = document.getElementById("chat-box");
 
@@ -169,7 +217,7 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     });
 
-    // --- À propos / Galerie ---
+    // Galerie
     const uploadForm = document.getElementById("upload-form");
     const mediaGallery = document.getElementById("media-gallery");
 
@@ -221,12 +269,6 @@
         mediaGallery.appendChild(userBlock);
       }
     });
-
-    // --- Onglets ---
-    function switchTab(tabId) {
-      document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
-      document.getElementById(tabId + "-tab").classList.add("active");
-    }
   </script>
 </body>
 </html>
