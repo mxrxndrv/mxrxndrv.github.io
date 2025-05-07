@@ -5,96 +5,133 @@
   <title>Mirindra Chat</title>
   <style>
     body {
-      font-family: sans-serif;
-      background: #f4f4f4;
       margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: url('https://images.unsplash.com/photo-1546069901-ba9599a7e63c') no-repeat center center fixed;
+      background-size: cover;
+      overflow-x: hidden;
     }
+
     header {
-      background: #6200ea;
+      background: rgba(0, 0, 0, 0.7);
       color: white;
       padding: 1em;
       text-align: center;
-      font-size: 1.5em;
+      font-size: 2em;
     }
+
     nav {
       display: flex;
       justify-content: space-around;
-      background: #ddd;
-      padding: 0.5em;
-    }
-    nav button {
-      background: #fff;
-      border: none;
-      padding: 0.5em 1em;
-      cursor: pointer;
-      font-weight: bold;
-    }
-    .tab {
-      display: none;
+      background: #ffffffcc;
       padding: 1em;
     }
+
+    nav button {
+      padding: 0.5em 1em;
+      font-weight: bold;
+      background: #fff;
+      border: 2px solid #6200ea;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+
+    .tab {
+      display: none;
+      padding: 2em;
+      background-color: #ffffffcc;
+      margin: 1em;
+      border-radius: 15px;
+    }
+
     .tab.active {
       display: block;
     }
+
     #chat-box {
-      height: 50vh;
+      height: 40vh;
       overflow-y: auto;
-      background: white;
-      border-radius: 10px;
+      background: #fff;
       padding: 1em;
+      border-radius: 10px;
     }
-    .message, .media {
-      margin-bottom: 10px;
-      background: #eee;
-      padding: 10px;
-      border-radius: 5px;
-    }
-    .media img, .media video {
-      max-width: 100%;
-      margin-top: 5px;
-      border-radius: 5px;
-    }
+
     form {
       display: flex;
       flex-direction: column;
-      gap: 8px;
-      margin-top: 10px;
+      gap: 10px;
+      margin-top: 1em;
     }
+
     input, button {
-      padding: 10px;
+      padding: 0.7em;
       border: 1px solid #ccc;
       border-radius: 5px;
     }
+
     button {
-      background-color: #6200ea;
+      background: #6200ea;
       color: white;
-      border: none;
+      font-weight: bold;
     }
+
+    .message, .media {
+      background: #eee;
+      padding: 10px;
+      border-radius: 8px;
+      margin: 0.5em 0;
+    }
+
+    .media img, .media video {
+      max-width: 100%;
+      border-radius: 8px;
+    }
+
+    .emoji {
+      position: fixed;
+      font-size: 2em;
+      pointer-events: none;
+      animation: float 10s linear infinite;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(100vh); opacity: 1; }
+      100% { transform: translateY(-100vh); opacity: 0; }
+    }
+
     .user-block {
       margin-bottom: 20px;
     }
+
     .username-label {
       font-weight: bold;
-      margin-top: 10px;
+      margin: 10px 0;
+    }
+
+    .auth-buttons {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 1em;
     }
   </style>
 </head>
 <body>
-  <header>Mirindra Chat</header>
+  <header>Mirindra Chat 🍕🍔🍣🍩🎂</header>
+
   <nav>
     <button onclick="switchTab('chat')">Discussion</button>
+    <button onclick="switchTab('admin-gallery')">Photos Admin</button>
     <button onclick="switchTab('about')">À propos</button>
-    <button onclick="switchTab('gallery')">Galerie</button>
-    <button onclick="switchTab('upload')">Envoi de fichiers</button>
+    <button onclick="switchTab('upload')">Envoyer un fichier</button>
   </nav>
 
-  <div id="auth-buttons">
-    <button id="google-login">Connexion avec Google</button>
-    <button id="facebook-login">Connexion avec Facebook</button>
-    <button id="instagram-login">Connexion avec Instagram</button>
-  </div>
+  <div class="tab active" id="chat-tab">
+    <div class="auth-buttons">
+      <button onclick="login('google')">Se connecter avec Google</button>
+      <button onclick="login('facebook')">Facebook</button>
+      <button onclick="alert('Instagram doit être simulé, pas supporté par Firebase')">Instagram</button>
+    </div>
 
-  <div class="tab" id="chat-tab">
     <form id="chat-form">
       <input type="text" id="chat-username" placeholder="Ton nom" required />
       <input type="text" id="chat-message" placeholder="Ton message" />
@@ -104,12 +141,12 @@
     <div id="chat-box"></div>
   </div>
 
-  <div class="tab" id="about-tab">
-    <p>Ce site a été créé par Mirindra pour permettre aux utilisateurs de discuter et partager.</p>
+  <div class="tab" id="admin-gallery-tab">
+    <div id="admin-gallery"></div>
   </div>
 
-  <div class="tab" id="gallery-tab">
-    <div id="media-gallery"></div>
+  <div class="tab" id="about-tab">
+    <p style="color: #333;">Ce site est créé par <strong>Andrianarivelo Njara Mirindra Nirina</strong> pour discuter et partager.</p>
   </div>
 
   <div class="tab" id="upload-tab">
@@ -118,13 +155,29 @@
       <input type="file" id="media-file" accept="image/*,video/*" />
       <button type="submit">Envoyer un fichier</button>
     </form>
+    <div id="media-gallery"></div>
   </div>
 
+  <!-- Emojis flottants -->
+  <script>
+    const emojis = ["🍕", "🍔", "🍟", "🌮", "🍣", "🎂", "🍩", "🍗", "🍇", "🍓", "🥑", "🥗", "🥞"];
+    setInterval(() => {
+      const emoji = document.createElement("div");
+      emoji.className = "emoji";
+      emoji.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+      emoji.style.left = Math.random() * 100 + "vw";
+      emoji.style.animationDuration = 5 + Math.random() * 10 + "s";
+      document.body.appendChild(emoji);
+      setTimeout(() => emoji.remove(), 15000);
+    }, 800);
+  </script>
+
+  <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-app.js";
     import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore.js";
     import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-storage.js";
-    import { getAuth, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
+    import { getAuth, signInWithPopup, GoogleAuthProvider, FacebookAuthProvider } from "https://www.gstatic.com/firebasejs/10.11.0/firebase-auth.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyAvajbCbTZ6826H0yIuz7S6MvvQ7sCec_M",
@@ -132,7 +185,8 @@
       projectId: "mxrxndrv-discu",
       storageBucket: "mxrxndrv-discu.appspot.com",
       messagingSenderId: "904395586988",
-      appId: "1:904395586988:web:d790c830a7dc7feb3ace09"
+      appId: "1:904395586988:web:d790c830a7dc7feb3ace09",
+      measurementId: "G-0GCH72QW09"
     };
 
     const app = initializeApp(firebaseConfig);
@@ -140,33 +194,14 @@
     const storage = getStorage(app);
     const auth = getAuth();
 
-    // Authentification Google
-    const googleProvider = new GoogleAuthProvider();
-    document.getElementById("google-login").addEventListener("click", () => {
-      signInWithPopup(auth, googleProvider);
-    });
-
-    // Authentification Facebook
-    const facebookProvider = new FacebookAuthProvider();
-    document.getElementById("facebook-login").addEventListener("click", () => {
-      signInWithPopup(auth, facebookProvider);
-    });
-
-    // Authentification Instagram (à compléter avec backend personnalisé)
-    document.getElementById("instagram-login").addEventListener("click", () => {
-      alert("Connexion Instagram non disponible directement via Firebase. Veuillez implémenter un backend.");
-    });
-
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        document.getElementById("auth-buttons").style.display = "none";
-        document.querySelectorAll(".tab").forEach(t => t.style.display = "block");
-        switchTab('chat');
-      } else {
-        document.getElementById("auth-buttons").style.display = "block";
-        document.querySelectorAll(".tab").forEach(t => t.style.display = "none");
-      }
-    });
+    function login(providerName) {
+      let provider;
+      if (providerName === "google") provider = new GoogleAuthProvider();
+      else if (providerName === "facebook") provider = new FacebookAuthProvider();
+      signInWithPopup(auth, provider)
+        .then(result => alert(`Connecté comme ${result.user.displayName}`))
+        .catch(error => alert("Erreur de connexion : " + error.message));
+    }
 
     function switchTab(tabId) {
       document.querySelectorAll(".tab").forEach(tab => tab.classList.remove("active"));
@@ -179,8 +214,8 @@
 
     chatForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const username = document.getElementById("chat-username").value.trim();
-      const message = document.getElementById("chat-message").value.trim();
+      const username = document.getElementById("chat-username").value;
+      const message = document.getElementById("chat-message").value;
       const image = document.getElementById("chat-image").files[0];
 
       let imageUrl = null;
@@ -217,13 +252,13 @@
       chatBox.scrollTop = chatBox.scrollHeight;
     });
 
-    // Galerie
+    // Upload / Galerie
     const uploadForm = document.getElementById("upload-form");
     const mediaGallery = document.getElementById("media-gallery");
 
     uploadForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const username = document.getElementById("upload-username").value.trim();
+      const username = document.getElementById("upload-username").value;
       const file = document.getElementById("media-file").files[0];
       if (!file) return;
 
@@ -250,10 +285,12 @@
       });
 
       mediaGallery.innerHTML = "";
+      document.getElementById("admin-gallery").innerHTML = "";
+
       for (const user in userGroups) {
-        const userBlock = document.createElement("div");
-        userBlock.className = "user-block";
-        userBlock.innerHTML = `<div class="username-label">${user}</div>`;
+        const block = document.createElement("div");
+        block.className = "user-block";
+        block.innerHTML = `<div class="username-label">${user}</div>`;
 
         userGroups[user].forEach(file => {
           const div = document.createElement("div");
@@ -261,12 +298,13 @@
           if (file.type === "video") {
             div.innerHTML = `<video src="${file.url}" controls></video>`;
           } else {
-            div.innerHTML = `<img src="${file.url}" alt="image" />`;
+            div.innerHTML = `<img src="${file.url}" />`;
           }
-          userBlock.appendChild(div);
+          block.appendChild(div);
         });
 
-        mediaGallery.appendChild(userBlock);
+        if (user === "admin") document.getElementById("admin-gallery").appendChild(block);
+        else mediaGallery.appendChild(block);
       }
     });
   </script>
