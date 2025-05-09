@@ -1,40 +1,81 @@
-// 1. Config Firebase
+// Configuration Firebase
 const firebaseConfig = {
-  apiKey: "mxrxndrv756",
-  authDomain: "mxrxndrv messenger.mimi.com",
-  projectId: "mxrxndrv message",
-  storageBucket: "mimi.com",
-  messagingSenderId: "19215678",
-  appId: "1:19215678:mimi:mxr12mi89"
+    apiKey: "AIzaSyAvajbCbTZ6826H0yIuz7S6MvvQ7sCec_M",
+    authDomain: "mxrxndrv-discu.firebaseapp.com",
+    projectId: "mxrxndrv-discu",
+    storageBucket: "mxrxndrv-discu.firebasestorage.app",
+    messagingSenderId: "904395586988",
+    appId: "1:904395586988:web:d790c830a7dc7feb3ace09",
+    measurementId: "G-0GCH72QW09"
 };
 
 // Initialisation Firebase
-firebase.initializeApp(firebaseConfig);
+const app = firebase.initializeApp(firebaseConfig);
+const analytics = firebase.analytics();
 const db = firebase.firestore();
-const storage = firebase.storage();
 const auth = firebase.auth();
 
-const chatBox = document.getElementById("chat-box");
-const chatForm = document.getElementById("chat-form");
-const usernameInput = document.getElementById("username");
-const messageInput = document.getElementById("message");
-
-// 2. Envoyer un message
-chatForm.addEventListener("submit", function(e) {
-  e.preventDefault();
-  const username = usernameInput.value;
-  const message = messageInput.value;
-  db.collection("messages").add({ username, message });
-  messageInput.value = "";
+// Gestion de l'authentification
+auth.onAuthStateChanged(user => {
+    const authStatus = document.getElementById('authStatus');
+    
+    if (user) {
+        authStatus.innerHTML = `
+            <div>Connecté en tant que ${user.email}</div>
+            <button onclick="logout()">Déconnexion</button>
+        `;
+        loadMessages();
+    } else {
+        authStatus.innerHTML = '<button onclick="login()">Connexion avec Google</button>';
+    }
 });
 
-// 3. Afficher les messages
-db.collection("messages").orderBy("timestamp").onSnapshot(function(snapshot) {
-  chatBox.innerHTML = "";
-  snapshot.forEach(function(doc) {
-    const data = doc.data();
-    const div = document.createElement("div");
-    div.textContent = `${data.username} : ${data.message}`;
-    chatBox.appendChild(div);
-  });
-});
+// Fonctions d'authentification
+function login() {
+    const provider = new firebase.auth.GoogleAuthProvider();
+    auth.signInWithPopup(provider);
+}
+
+function logout() {
+    auth.signOut();
+}
+
+// Gestion des messages
+function loadMessages() {
+    db.collection('messages')
+        .orderBy('timestamp', 'desc')
+        .onSnapshot(snapshot => {
+            const container = document.getElementById('messagesContainer');
+            container.innerHTML = '';
+            
+            snapshot.forEach(doc => {
+                const message = doc.data();
+                container.innerHTML += `
+                    <div class="message">
+                        <div>
+                            <div class="message-info">
+                                ${message.userEmail} - ${new Date(message.timestamp).toLocaleString()}
+                            </div>
+                            <div>${message.text}</div>
+                        </div>
+                    </div>
+                `;
+            });
+        });
+}
+
+function sendMessage() {
+    const user = auth.currentUser;
+    const input = document.getElementById('messageInput');
+    
+    if (user && input.value.trim()) {
+        db.collection('messages').add({
+            text: input.value,
+            userEmail: user.email,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        input.value = '';
+        analytics.logEvent('message_sent');
+    }
+}
