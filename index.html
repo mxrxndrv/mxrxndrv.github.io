@@ -3,25 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MX Discussions</title>
+    <title>MX Platform</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="style.css">
-    <!-- SDK Firebase -->
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-analytics-compat.js"></script>
 </head>
 <body>
-    <header>
-        <h1>MX Discussion 🔥</h1>
-        <div id="authStatus"></div>
-    </header>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="header">
+                <h1><img src="assets/logo.png" alt="Logo"> MX Platform</h1>
+                <button class="create-room" onclick="showCreateRoomModal()">
+                    <i class="material-icons">add</i>
+                    Nouveau salon
+                </button>
+            </div>
+            <div id="roomsList" class="rooms-list"></div>
+            <div class="user-panel" id="userPanel"></div>
+        </aside>
 
-    <div id="messagesContainer"></div>
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="chat-header" id="chatHeader"></div>
+            <div class="messages-container" id="messagesContainer"></div>
+            <div class="message-input" id="messageForm"></div>
+        </main>
+    </div>
 
-    <div id="messageForm">
-        <textarea id="messageInput" placeholder="Écrivez votre message..."></textarea>
-        <button onclick="sendMessage()">Envoyer</button>
+    <!-- Modals -->
+    <div id="roomModal" class="modal">
+        <div class="modal-content">
+            <h3>Créer un nouveau salon</h3>
+            <input type="text" id="roomName" placeholder="Nom du salon">
+            <textarea id="roomDescription" placeholder="Description"></textarea>
+            <button onclick="createRoom()">Créer</button>
+        </div>
     </div>
 
     <script src="app.js"></script>
