@@ -77,5 +77,36 @@ function sendMessage() {
         
         input.value = '';
         analytics.logEvent('message_sent');
+
+let username = null;
+
+function showUsernameModal() {
+    usernameModal.style.display = 'flex';
+    usernameInput.focus();
+}
+
+function setUsername() {
+    const input = usernameInput.value.trim();
+    if(input.length >= 3 && input.length <= 20) {
+        username = input;
+        localStorage.setItem('cafeteriaUsername', username);
+        usernameModal.style.display = 'none';
+        chatToggle.disabled = false;
+        chatToggle.textContent = `💬 ${username}`; // Ajout visuel
+    } else {
+        alert("Veuillez choisir un pseudo entre 3 et 20 caractères !");
     }
 }
+
+// Au chargement de la page
+document.addEventListener('DOMContentLoaded', () => {
+    const savedUsername = localStorage.getItem('cafeteriaUsername');
+    if(savedUsername) {
+        username = savedUsername;
+        chatToggle.disabled = false;
+        chatToggle.textContent = `💬 ${username}`;
+    } else {
+        showUsernameModal();
+    }
+});
+  
