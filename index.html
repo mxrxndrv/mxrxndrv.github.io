@@ -3,147 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cafétéria Lycée Les Délices</title>
+    <title>Chat en temps réel</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Pacifico&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #FF6B35;
-            --secondary: #FF9E44;
-            --light: #FFF9F2;
-            --dark: #2D3436;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
         body {
             font-family: 'Roboto', sans-serif;
-            background: var(--light);
-            color: var(--dark);
+            background-color: #f9f9f9;
+            margin: 0;
+            padding: 0;
         }
-
-        /* Chat Section */
         .chat-container {
             max-width: 600px;
-            margin: 2rem auto;
-            padding: 1rem;
-            background: white;
-            border-radius: 10px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
-
         .chat-messages {
             height: 300px;
-            overflow-y: scroll;
+            overflow-y: auto;
             border: 1px solid #ddd;
             border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
+            padding: 10px;
+            margin-bottom: 10px;
         }
-
         .chat-input {
             display: flex;
-            gap: 1rem;
         }
-
         .chat-input input {
             flex: 1;
-            padding: 1rem;
+            padding: 10px;
             border: 1px solid #ddd;
             border-radius: 8px;
+            margin-right: 10px;
         }
-
         .chat-input button {
-            padding: 1rem 2rem;
-            background: var(--primary);
-            color: white;
+            padding: 10px 20px;
+            background: #007bff;
+            color: #fff;
             border: none;
             border-radius: 8px;
             cursor: pointer;
         }
-
-        .chat-message {
-            margin-bottom: 1rem;
+        .chat-input button:hover {
+            background: #0056b3;
         }
-
-        .chat-message .username {
+        .chat-message {
+            margin-bottom: 10px;
+        }
+        .chat-message span {
             font-weight: bold;
-            color: var(--primary);
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="nav-container">
-            <div class="logo">
-                <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="Logo cafétéria">
-                <h1>Les Délices du Lycée</h1>
-            </div>
+    <div class="chat-container">
+        <h2>Chat en temps réel</h2>
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="message-input" placeholder="Tapez votre message...">
+            <button id="send-button">Envoyer</button>
         </div>
-    </header>
+    </div>
 
-    <main>
-        <!-- Chat Section -->
-        <section class="chat-container">
-            <h2>Chat en temps réel</h2>
-            <div class="chat-messages" id="chat-messages"></div>
-            <div class="chat-input">
-                <input type="text" id="chat-input" placeholder="Tapez votre message..." />
-                <button id="chat-send">Envoyer</button>
-            </div>
-        </section>
-    </main>
-
+    <!-- Firebase App (core SDK) -->
     <script type="module">
-        // Import Firebase SDK
-        // Remplacez la configuration ci-dessous par celle de votre projet Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
-        import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
+        // Import Firebase SDKs
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js";
+        import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-database.js";
 
+        // Your Firebase configuration
         const firebaseConfig = {
-            apiKey: "VOTRE-API-KEY",
-            authDomain: "VOTRE-AUTH-DOMAIN",
-            databaseURL: "VOTRE-DATABASE-URL",
-            projectId: "VOTRE-PROJECT-ID",
-            storageBucket: "VOTRE-STORAGE-BUCKET",
-            messagingSenderId: "VOTRE-MESSAGING-SENDER-ID",
-            appId: "VOTRE-APP-ID"
+            apiKey: "AIzaSyAvajbCbTZ6826H0yIuz7S6MvvQ7sCec_M",
+            authDomain: "mxrxndrv-discu.firebaseapp.com",
+            projectId: "mxrxndrv-discu",
+            storageBucket: "mxrxndrv-discu.firebasestorage.app",
+            messagingSenderId: "904395586988",
+            appId: "1:904395586988:web:d790c830a7dc7feb3ace09",
+            measurementId: "G-0GCH72QW09"
         };
 
-        // Initialiser Firebase
+        // Initialize Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // Références Firebase
+        // References to DOM elements
+        const chatMessages = document.getElementById("chat-messages");
+        const messageInput = document.getElementById("message-input");
+        const sendButton = document.getElementById("send-button");
+
+        // Firebase database reference
         const messagesRef = ref(database, "messages");
 
-        // Écouter les nouveaux messages
-        const chatMessages = document.getElementById("chat-messages");
-        onChildAdded(messagesRef, (data) => {
-            const message = data.val();
-            const messageDiv = document.createElement("div");
-            messageDiv.classList.add("chat-message");
-            messageDiv.innerHTML = `<span class="username">${message.username}:</span> ${message.text}`;
-            chatMessages.appendChild(messageDiv);
-            chatMessages.scrollTop = chatMessages.scrollHeight;
+        // Send message to Firebase
+        sendButton.addEventListener("click", () => {
+            const message = messageInput.value.trim();
+            if (message !== "") {
+                push(messagesRef, {
+                    username: "Anonyme", // You can replace this with user authentication data
+                    text: message
+                });
+                messageInput.value = "";
+            }
         });
 
-        // Envoyer un message
-        const chatInput = document.getElementById("chat-input");
-        const chatSend = document.getElementById("chat-send");
-
-        chatSend.addEventListener("click", () => {
-            const text = chatInput.value.trim();
-            if (text) {
-                push(messagesRef, {
-                    username: "Anonyme", // Remplacez par une gestion d'utilisateur plus avancée si nécessaire
-                    text
-                });
-                chatInput.value = "";
-            }
+        // Listen for new messages
+        onChildAdded(messagesRef, (data) => {
+            const messageData = data.val();
+            const messageElement = document.createElement("div");
+            messageElement.classList.add("chat-message");
+            messageElement.innerHTML = `<span>${messageData.username}:</span> ${messageData.text}`;
+            chatMessages.appendChild(messageElement);
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the bottom
         });
     </script>
 </body>
