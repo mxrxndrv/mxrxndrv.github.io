@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat en temps réel</title>
+    <title>Cafétéria et Chat en temps réel</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Pacifico&display=swap" rel="stylesheet">
     <style>
         body {
@@ -12,6 +12,30 @@
             margin: 0;
             padding: 0;
         }
+
+        header {
+            background-color: #FF6B35;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+
+        .menu-container {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .menu-item {
+            margin-bottom: 1rem;
+            padding: 15px;
+            background: #f4f4f4;
+            border-radius: 8px;
+        }
+
         .chat-container {
             max-width: 600px;
             margin: 50px auto;
@@ -20,6 +44,7 @@
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
         .chat-messages {
             height: 300px;
             overflow-y: auto;
@@ -28,9 +53,11 @@
             padding: 10px;
             margin-bottom: 10px;
         }
+
         .chat-input {
             display: flex;
         }
+
         .chat-input input {
             flex: 1;
             padding: 10px;
@@ -38,6 +65,7 @@
             border-radius: 8px;
             margin-right: 10px;
         }
+
         .chat-input button {
             padding: 10px 20px;
             background: #007bff;
@@ -46,18 +74,47 @@
             border-radius: 8px;
             cursor: pointer;
         }
+
         .chat-input button:hover {
             background: #0056b3;
         }
+
         .chat-message {
             margin-bottom: 10px;
         }
+
         .chat-message span {
             font-weight: bold;
         }
     </style>
 </head>
 <body>
+    <header>
+        <h1>Bienvenue à la Cafétéria du Lycée</h1>
+        <p>Options du jour et discussions en temps réel</p>
+    </header>
+
+    <!-- Section Menu -->
+    <div class="menu-container">
+        <h2>Options du Menu</h2>
+        <div class="menu-item">
+            <h3>Potage du Marché</h3>
+            <p>Mélange de légumes de saison, servi avec du pain maison</p>
+            <span>Prix : 3.50€</span>
+        </div>
+        <div class="menu-item">
+            <h3>Salade Fraîche</h3>
+            <p>Salade verte, tomates, concombres, vinaigrette maison</p>
+            <span>Prix : 4.00€</span>
+        </div>
+        <div class="menu-item">
+            <h3>Dessert Gourmand</h3>
+            <p>Choix de gâteau ou fruit frais</p>
+            <span>Prix : 2.50€</span>
+        </div>
+    </div>
+
+    <!-- Section Chat -->
     <div class="chat-container">
         <h2>Chat en temps réel</h2>
         <div class="chat-messages" id="chat-messages"></div>
@@ -67,13 +124,12 @@
         </div>
     </div>
 
-    <!-- Firebase App (core SDK) -->
     <script type="module">
         // Import Firebase SDKs
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js";
         import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-database.js";
 
-        // Your Firebase configuration
+        // Votre configuration Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAvajbCbTZ6826H0yIuz7S6MvvQ7sCec_M",
             authDomain: "mxrxndrv-discu.firebaseapp.com",
@@ -84,38 +140,42 @@
             measurementId: "G-0GCH72QW09"
         };
 
-        // Initialize Firebase
+        // Initialisation de Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
 
-        // References to DOM elements
+        // Références aux éléments DOM
         const chatMessages = document.getElementById("chat-messages");
         const messageInput = document.getElementById("message-input");
         const sendButton = document.getElementById("send-button");
 
-        // Firebase database reference
+        // Génération d'un nom d'utilisateur drôle
+        const usernames = ["SuperCarotte", "MasterPotage", "FraiseTagada", "LaitChoco", "PainPerdu"];
+        const username = usernames[Math.floor(Math.random() * usernames.length)];
+
+        // Référence Firebase
         const messagesRef = ref(database, "messages");
 
-        // Send message to Firebase
+        // Envoi d'un message à Firebase
         sendButton.addEventListener("click", () => {
             const message = messageInput.value.trim();
             if (message !== "") {
                 push(messagesRef, {
-                    username: "Anonyme", // You can replace this with user authentication data
+                    username: username,
                     text: message
                 });
                 messageInput.value = "";
             }
         });
 
-        // Listen for new messages
+        // Écoute des nouveaux messages
         onChildAdded(messagesRef, (data) => {
             const messageData = data.val();
             const messageElement = document.createElement("div");
             messageElement.classList.add("chat-message");
             messageElement.innerHTML = `<span>${messageData.username}:</span> ${messageData.text}`;
             chatMessages.appendChild(messageElement);
-            chatMessages.scrollTop = chatMessages.scrollHeight; // Auto-scroll to the bottom
+            chatMessages.scrollTop = chatMessages.scrollHeight; // Défilement automatique
         });
     </script>
 </body>
