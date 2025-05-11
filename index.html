@@ -3,179 +3,283 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cafétéria et Chat en temps réel</title>
+    <title>Cafétéria Connectée - Lycée</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Pacifico&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --primary: #FF6B35;
+            --secondary: #004E89;
+            --background: #F8F9FA;
+        }
+
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #f9f9f9;
             margin: 0;
-            padding: 0;
+            background-color: var(--background);
         }
 
         header {
-            background-color: #FF6B35;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 1rem;
+            padding: 2rem 1rem;
             text-align: center;
-        }
-
-        .menu-container {
-            max-width: 800px;
-            margin: 20px auto;
-            background: #fff;
-            padding: 20px;
-            border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        .menu-item {
-            margin-bottom: 1rem;
-            padding: 15px;
-            background: #f4f4f4;
-            border-radius: 8px;
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .menu-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease;
+        }
+
+        .menu-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .chat-toggle {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
         }
 
         .chat-container {
-            max-width: 600px;
-            margin: 50px auto;
-            padding: 20px;
-            background: #fff;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            position: fixed;
+            bottom: 8rem;
+            right: 2rem;
+            width: 350px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            transform: translateY(150%);
+            transition: transform 0.3s ease;
+            z-index: 999;
+        }
+
+        .chat-container.active {
+            transform: translateY(0);
+        }
+
+        .chat-header {
+            background: var(--secondary);
+            color: white;
+            padding: 1rem;
+            border-radius: 15px 15px 0 0;
         }
 
         .chat-messages {
             height: 300px;
+            padding: 1rem;
             overflow-y: auto;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 10px;
         }
 
         .chat-input {
             display: flex;
+            padding: 1rem;
+            border-top: 1px solid #eee;
         }
 
         .chat-input input {
             flex: 1;
-            padding: 10px;
+            padding: 0.8rem;
             border: 1px solid #ddd;
             border-radius: 8px;
-            margin-right: 10px;
+            margin-right: 0.5rem;
         }
 
         .chat-input button {
-            padding: 10px 20px;
-            background: #007bff;
-            color: #fff;
+            background: var(--primary);
+            color: white;
             border: none;
+            padding: 0.8rem 1.5rem;
             border-radius: 8px;
             cursor: pointer;
         }
 
-        .chat-input button:hover {
-            background: #0056b3;
+        .username-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
         }
 
-        .chat-message {
-            margin-bottom: 10px;
+        .username-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
         }
 
-        .chat-message span {
-            font-weight: bold;
+        .username-input {
+            width: 100%;
+            padding: 1rem;
+            margin: 1rem 0;
+            border: 2px solid var(--secondary);
+            border-radius: 8px;
+            font-size: 1rem;
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>Bienvenue à la Cafétéria du Lycée</h1>
-        <p>Options du jour et discussions en temps réel</p>
+        <h1>🍴 Cafétéria Connectée</h1>
+        <p>Découvrez nos plats du jour et échangez en temps réel</p>
     </header>
 
-    <!-- Section Menu -->
-    <div class="menu-container">
-        <h2>Options du Menu</h2>
-        <div class="menu-item">
-            <h3>Potage du Marché</h3>
-            <p>Mélange de légumes de saison, servi avec du pain maison</p>
-            <span>Prix : 3.50€</span>
-        </div>
-        <div class="menu-item">
-            <h3>Salade Fraîche</h3>
-            <p>Salade verte, tomates, concombres, vinaigrette maison</p>
-            <span>Prix : 4.00€</span>
-        </div>
-        <div class="menu-item">
-            <h3>Dessert Gourmand</h3>
-            <p>Choix de gâteau ou fruit frais</p>
-            <span>Prix : 2.50€</span>
+    <div class="container">
+        <div class="menu-grid">
+            <div class="menu-card">
+                <h3>Potage du Marché</h3>
+                <p>Légumes de saison, pain maison</p>
+                <div class="price">3.50€</div>
+            </div>
+            <div class="menu-card">
+                <h3>Salade Fraîche</h3>
+                <p>Salade verte, tomates, vinaigrette maison</p>
+                <div class="price">4.00€</div>
+            </div>
+            <div class="menu-card">
+                <h3>Dessert Gourmand</h3>
+                <p>Gâteau maison ou fruit frais</p>
+                <div class="price">2.50€</div>
+            </div>
         </div>
     </div>
 
-    <!-- Section Chat -->
-    <div class="chat-container">
-        <h2>Chat en temps réel</h2>
-        <div class="chat-messages" id="chat-messages"></div>
+    <!-- Chat Toggle -->
+    <button class="chat-toggle" id="chatToggle">💬</button>
+
+    <!-- Chat Container -->
+    <div class="chat-container" id="chatContainer">
+        <div class="chat-header">
+            <h3>Chat en direct</h3>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
         <div class="chat-input">
-            <input type="text" id="message-input" placeholder="Tapez votre message...">
-            <button id="send-button">Envoyer</button>
+            <input type="text" id="messageInput" placeholder="Écrivez votre message...">
+            <button id="sendButton">Envoyer</button>
+        </div>
+    </div>
+
+    <!-- Username Modal -->
+    <div class="username-modal" id="usernameModal">
+        <div class="username-box">
+            <h2>Choisissez votre pseudo</h2>
+            <input type="text" class="username-input" id="usernameInput" placeholder="Votre pseudo..." maxlength="20">
+            <button onclick="setUsername()">Commencer à chatter</button>
         </div>
     </div>
 
     <script type="module">
-        // Import Firebase SDKs
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-app.js";
         import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.11/firebase-database.js";
 
-        // Votre configuration Firebase
         const firebaseConfig = {
             apiKey: "AIzaSyAvajbCbTZ6826H0yIuz7S6MvvQ7sCec_M",
             authDomain: "mxrxndrv-discu.firebaseapp.com",
             projectId: "mxrxndrv-discu",
-            storageBucket: "mxrxndrv-discu.firebasestorage.app",
+            storageBucket: "mxrxndrv-discu.appspot.com",
             messagingSenderId: "904395586988",
             appId: "1:904395586988:web:d790c830a7dc7feb3ace09",
             measurementId: "G-0GCH72QW09"
         };
 
-        // Initialisation de Firebase
         const app = initializeApp(firebaseConfig);
         const database = getDatabase(app);
-
-        // Références aux éléments DOM
-        const chatMessages = document.getElementById("chat-messages");
-        const messageInput = document.getElementById("message-input");
-        const sendButton = document.getElementById("send-button");
-
-        // Génération d'un nom d'utilisateur drôle
-        const usernames = ["SuperCarotte", "MasterPotage", "FraiseTagada", "LaitChoco", "PainPerdu"];
-        const username = usernames[Math.floor(Math.random() * usernames.length)];
-
-        // Référence Firebase
         const messagesRef = ref(database, "messages");
 
-        // Envoi d'un message à Firebase
-        sendButton.addEventListener("click", () => {
-            const message = messageInput.value.trim();
-            if (message !== "") {
-                push(messagesRef, {
-                    username: username,
-                    text: message
-                });
-                messageInput.value = "";
+        // Éléments DOM
+        const chatToggle = document.getElementById("chatToggle");
+        const chatContainer = document.getElementById("chatContainer");
+        const usernameModal = document.getElementById("usernameModal");
+        const usernameInput = document.getElementById("usernameInput");
+
+        let username = null;
+
+        // Gestion du pseudo
+        function showUsernameModal() {
+            usernameModal.style.display = 'flex';
+        }
+
+        function setUsername() {
+            if(usernameInput.value.trim()) {
+                username = usernameInput.value.trim();
+                sessionStorage.setItem('cafeteriaUsername', username);
+                usernameModal.style.display = 'none';
+                chatToggle.disabled = false;
             }
+        }
+
+        // Vérification du pseudo au chargement
+        if(!sessionStorage.getItem('cafeteriaUsername')) {
+            showUsernameModal();
+            chatToggle.disabled = true;
+        } else {
+            username = sessionStorage.getItem('cafeteriaUsername');
+        }
+
+        // Gestion du chat
+        chatToggle.addEventListener('click', () => {
+            chatContainer.classList.toggle('active');
         });
 
-        // Écoute des nouveaux messages
-        onChildAdded(messagesRef, (data) => {
-            const messageData = data.val();
-            const messageElement = document.createElement("div");
-            messageElement.classList.add("chat-message");
-            messageElement.innerHTML = `<span>${messageData.username}:</span> ${messageData.text}`;
-            chatMessages.appendChild(messageElement);
-            chatMessages.scrollTop = chatMessages.scrollHeight; // Défilement automatique
+        document.getElementById("sendButton").addEventListener("click", sendMessage);
+
+        function sendMessage() {
+            const message = document.getElementById("messageInput").value.trim();
+            if(message && username) {
+                push(messagesRef, {
+                    username: username,
+                    text: message,
+                    timestamp: Date.now()
+                });
+                document.getElementById("messageInput").value = "";
+            }
+        }
+
+        onChildAdded(messagesRef, (snapshot) => {
+            const data = snapshot.val();
+            const messageDiv = document.createElement('div');
+            messageDiv.innerHTML = `
+                <strong>${data.username}:</strong> ${data.text}
+                <small>${new Date(data.timestamp).toLocaleTimeString()}</small>
+            `;
+            document.getElementById("chatMessages").appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         });
     </script>
 </body>
