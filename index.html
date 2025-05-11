@@ -25,240 +25,53 @@
             color: var(--dark);
         }
 
-        /* Header */
-        header {
-            background: linear-gradient(45deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 1rem;
-            position: fixed;
-            width: 100%;
-            top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-
-        .nav-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .logo img {
-            height: 50px;
-            filter: drop-shadow(2px 2px 2px rgba(0,0,0,0.2));
-        }
-
-        .logo h1 {
-            font-family: 'Pacifico', cursive;
-            font-size: 1.8rem;
-        }
-
-        nav a {
-            color: white;
-            text-decoration: none;
-            margin-left: 2rem;
-            font-weight: 500;
-            transition: all 0.3s;
-        }
-
-        nav a:hover {
-            transform: translateY(-2px);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        /* Section Hero */
-        .hero {
-            margin-top: 80px;
-            height: 70vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)),
-                        url('https://pngtree.com/freepng/delicious-asian-soup_15464859.') center/cover;
-        }
-
-        .soup-bowl {
-            text-align: center;
-            color: white;
-            padding: 2rem;
-        }
-
-        .soup-bowl img {
-            width: 200px;
-            height: 200px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 4px solid white;
-            margin-bottom: 1rem;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-20px); }
-            100% { transform: translateY(0px); }
-        }
-
-        /* Sections communes */
-        .section-title {
-            text-align: center;
-            padding: 4rem 0 2rem;
-            font-size: 2.5rem;
-            color: var(--primary);
-        }
-
-        /* Menu */
-        .menu-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-
-        .menu-item {
-            background: white;
-            border-radius: 15px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            transition: all 0.3s;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .menu-item:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 15px rgba(0,0,0,0.2);
-        }
-
-        .menu-item::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: var(--primary);
-            transform: scaleX(0);
-            transition: transform 0.3s;
-        }
-
-        .menu-item:hover::after {
-            transform: scaleX(1);
-        }
-
-        /* Galerie */
-        .gallery-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1rem;
-            padding: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .gallery-item {
-            position: relative;
-            overflow: hidden;
-            border-radius: 10px;
-            aspect-ratio: 1/1;
-        }
-
-        .gallery-item img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.3s;
-        }
-
-        .gallery-item:hover img {
-            transform: scale(1.1);
-        }
-
-        /* Réservation */
-        .reservation {
-            background: white;
-            padding: 4rem 2rem;
-            text-align: center;
-        }
-
-        .reservation-form {
+        /* Chat Section */
+        .chat-container {
             max-width: 600px;
-            margin: 0 auto;
-            display: grid;
-            gap: 1rem;
-            padding: 2rem;
-            background: var(--light);
-            border-radius: 15px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
 
-        input, select, textarea {
+        .chat-messages {
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .chat-input input {
+            flex: 1;
             padding: 1rem;
             border: 1px solid #ddd;
             border-radius: 8px;
-            width: 100%;
         }
 
-        /* Avis */
-        .testimonials {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
-            padding: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .testimonial {
-            background: white;
-            padding: 2rem;
-            border-radius: 15px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-
-        /* Footer */
-        footer {
-            background: var(--dark);
+        .chat-input button {
+            padding: 1rem 2rem;
+            background: var(--primary);
             color: white;
-            padding: 4rem 2rem;
-            margin-top: 4rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
         }
 
-        .footer-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 2rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .footer-section h3 {
-            color: var(--primary);
+        .chat-message {
             margin-bottom: 1rem;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            nav {
-                display: none;
-            }
-            
-            .hero {
-                height: 50vh;
-            }
-            
-            .menu-grid {
-                grid-template-columns: 1fr;
-            }
+        .chat-message .username {
+            font-weight: bold;
+            color: var(--primary);
         }
     </style>
 </head>
@@ -269,119 +82,68 @@
                 <img src="https://cdn-icons-png.flaticon.com/512/1046/1046784.png" alt="Logo cafétéria">
                 <h1>Les Délices du Lycée</h1>
             </div>
-            <nav>
-                <a href="#menu">Menu</a>
-                <a href="#galerie">Galerie</a>
-                <a href="#reservation">Réservation</a>
-                <a href="#avis">Avis</a>
-            </nav>
         </div>
     </header>
 
-    <section class="hero">
-        <div class="soup-bowl">
-            <img src="https://images.unsplash.com/photo-1611348586804-61bfe43a0eb6" alt="Soupe du jour">
-            <h2>Soupe Maison du Jour</h2>
-            <p>Légumes bio de nos producteurs locaux</p>
-            <button>Découvrir notre carte</button>
-        </div>
-    </section>
-
-    <!-- Menu Section -->
-    <section id="menu">
-        <h2 class="section-title">Notre Menu</h2>
-        <div class="menu-grid">
-            <div class="menu-item">
-                <h3>Potage du Marché</h3>
-                <p>Mélange de légumes de saison, pain maison</p>
-                <span class="price">3.50€</span>
+    <main>
+        <!-- Chat Section -->
+        <section class="chat-container">
+            <h2>Chat en temps réel</h2>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div class="chat-input">
+                <input type="text" id="chat-input" placeholder="Tapez votre message..." />
+                <button id="chat-send">Envoyer</button>
             </div>
-            <!-- Ajouter plus d'items -->
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <!-- Galerie Section -->
-    <section id="galerie">
-        <h2 class="section-title">Notre Univers</h2>
-        <div class="gallery-grid">
-            <div class="gallery-item">
-                <img src="https://images.unsplash.com/photo-1572357176061-7c96fd2af7f8" alt="Espace cafétéria">
-            </div>
-            <!-- Ajouter plus d'images -->
-        </div>
-    </section>
+    <script type="module">
+        // Import Firebase SDK
+        // Remplacez la configuration ci-dessous par celle de votre projet Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js";
+        import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js";
 
-    <!-- Réservation Section -->
-    <section class="reservation" id="reservation">
-        <h2 class="section-title">Réservation</h2>
-        <form class="reservation-form">
-            <input type="text" placeholder="Nom" required>
-            <input type="email" placeholder="Email" required>
-            <select required>
-                <option value="">Nombre de personnes</option>
-                <option>1-2</option>
-                <option>3-5</option>
-                <option>6+</option>
-            </select>
-            <input type="datetime-local" required>
-            <textarea placeholder="Message spécial" rows="4"></textarea>
-            <button type="submit">Réserver</button>
-        </form>
-    </section>
+        const firebaseConfig = {
+            apiKey: "VOTRE-API-KEY",
+            authDomain: "VOTRE-AUTH-DOMAIN",
+            databaseURL: "VOTRE-DATABASE-URL",
+            projectId: "VOTRE-PROJECT-ID",
+            storageBucket: "VOTRE-STORAGE-BUCKET",
+            messagingSenderId: "VOTRE-MESSAGING-SENDER-ID",
+            appId: "VOTRE-APP-ID"
+        };
 
-    <!-- Avis Section -->
-    <section id="avis">
-        <h2 class="section-title">Avis des Élèves</h2>
-        <div class="testimonials">
-            <div class="testimonial">
-                <p>"La meilleure soupe du quartier !"</p>
-                <h4>- Marie, Terminale</h4>
-            </div>
-            <!-- Ajouter plus d'avis -->
-        </div>
-    </section>
+        // Initialiser Firebase
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
 
-    <footer>
-        <div class="footer-grid">
-            <div class="footer-section">
-                <h3>Horaires</h3>
-                <p>Lun-Ven: 8h-18h</p>
-                <p>Sam: 9h-14h</p>
-            </div>
-            <div class="footer-section">
-                <h3>Contact</h3>
-                <p>12 Rue des Écoles</p>
-                <p>01 23 45 67 89</p>
-                <p>contact@deliceslycee.fr</p>
-            </div>
-            <div class="footer-section">
-                <h3>Réseaux</h3>
-                <p>Instagram</p>
-                <p>Facebook</p>
-                <p>TikTok</p>
-            </div>
-        </div>
-    </footer>
+        // Références Firebase
+        const messagesRef = ref(database, "messages");
 
-    <script>
-        // Animation au défilement
-        const observer = new IntersectionObserver((entries) => {
-            entries.forEach(entry => {
-                if(entry.isIntersecting) {
-                    entry.target.classList.add('show');
-                }
-            });
+        // Écouter les nouveaux messages
+        const chatMessages = document.getElementById("chat-messages");
+        onChildAdded(messagesRef, (data) => {
+            const message = data.val();
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("chat-message");
+            messageDiv.innerHTML = `<span class="username">${message.username}:</span> ${message.text}`;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
         });
 
-        document.querySelectorAll('.menu-item, .testimonial, .gallery-item').forEach((el) => {
-            observer.observe(el);
-        });
+        // Envoyer un message
+        const chatInput = document.getElementById("chat-input");
+        const chatSend = document.getElementById("chat-send");
 
-        // Gestion du formulaire
-        document.querySelector('.reservation-form').addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert('If you love me,I love you too🤣.');
-            e.target.reset();
+        chatSend.addEventListener("click", () => {
+            const text = chatInput.value.trim();
+            if (text) {
+                push(messagesRef, {
+                    username: "Anonyme", // Remplacez par une gestion d'utilisateur plus avancée si nécessaire
+                    text
+                });
+                chatInput.value = "";
+            }
         });
     </script>
 </body>
