@@ -1,58 +1,43 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cafet'Connect - Lycée</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Pacifico&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="username-modal" id="usernameModal">
-        <div class="username-box">
-            <h2>🦸 Choisis ton pseudo cafet'</h2>
-            <input type="text" id="usernameInput" placeholder="Pseudo cool..." maxlength="20">
-            <button onclick="setUsername()">Go !</button>
-            <p class="rules">Max 20 caractères • Pas de gros mots 😉</p>
-        </div>
-    </div>
+{% extends "base.html" %}
 
-    <header>
-        <h1>🍟 Cafet'Connect</h1>
-        <p>Le menu du jour et le chat des gourmands</p>
-    </header>
+{% block title %}Accueil{% endblock %}
 
-    <main class="container">
-        <section class="menu-grid">
+{% block content %}
+    <section class="today-menu">
+        <h2>Menu du jour</h2>
+        {% if menu_du_jour %}
             <div class="menu-card">
-                <h3>Plat Principal</h3>
-                <p>Option 1: Poulet rôti aux herbes</p>
-                <p>Option 2: Lasagnes végétariennes</p>
-                <div class="price">4.20€</div>
+                <h3>{{ menu_du_jour.date.strftime('%A %d %B %Y') }}</h3>
+                <ul>
+                    <li><strong>Entrée:</strong> {{ menu_du_jour.entree }}</li>
+                    <li><strong>Plat principal:</strong> {{ menu_du_jour.plat_principal }}</li>
+                    <li><strong>Dessert:</strong> {{ menu_du_jour.dessert }}</li>
+                </ul>
+                <a href="{{ url_for('menu_detail', menu_id=menu_du_jour.id) }}" class="btn">Voir les commentaires</a>
             </div>
-            
-            <div class="menu-card dessert">
-                <h3>Dessert du Jour</h3>
-                <p>Moelleux au chocolat ou Fruit frais</p>
-                <div class="price">2.10€</div>
+        {% else %}
+            <p>Aucun menu prévu pour aujourd'hui.</p>
+        {% endif %}
+    </section>
+
+    <section class="future-menus">
+        <h2>Prochains menus</h2>
+        {% if menus_futurs %}
+            <div class="menu-grid">
+                {% for menu in menus_futurs %}
+                    <div class="menu-card">
+                        <h3>{{ menu.date.strftime('%A %d %B') }}</h3>
+                        <ul>
+                            <li><strong>Entrée:</strong> {{ menu.entree }}</li>
+                            <li><strong>Plat:</strong> {{ menu.plat_principal }}</li>
+                            <li><strong>Dessert:</strong> {{ menu.dessert }}</li>
+                        </ul>
+                        <a href="{{ url_for('menu_detail', menu_id=menu.id) }}" class="btn">Commenter</a>
+                    </div>
+                {% endfor %}
             </div>
-        </section>
-    </main>
-
-    <button class="chat-toggle" id="chatToggle">💬</button>
-
-    <div class="chat-container" id="chatContainer">
-        <div class="chat-header">
-            <h3>Chat Live 🍔</h3>
-            <div class="online-counter">🟢 <span id="onlineCount">0</span> connectés</div>
-        </div>
-        <div class="chat-messages" id="chatMessages"></div>
-        <div class="chat-input">
-            <input type="text" id="messageInput" placeholder="Tape ton message..." maxlength="150">
-            <button id="sendButton">Envoyer</button>
-        </div>
-    </div>
-
-    <script type="module" src="app.js"></script>
-</body>
-</html>
+        {% else %}
+            <p>Aucun menu à venir.</p>
+        {% endif %}
+    </section>
+{% endblock %}
