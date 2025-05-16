@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cantine Scolaire - {% block title %}{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Cantine Scolaire</h1>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('index') }}">Accueil</a></li>
+                    <li><a href="{{ url_for('suggestions') }}">Suggestions</a></li>
+                    {% if 'user_id' in session %}
+                        {% if session['is_admin'] %}
+                            <li><a href="{{ url_for('admin') }}">Admin</a></li>
+                        {% endif %}
+                        <li><a href="{{ url_for('logout') }}">Déconnexion</a></li>
+                    {% else %}
+                        <li><a href="{{ url_for('login') }}">Connexion</a></li>
+                    {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="container">
+            <p>&copy; 2023 Cantine Scolaire - Tous droits réservés</p>
+        </div>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
