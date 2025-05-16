@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Menu du {{ menu.date.strftime('%d/%m/%Y') }}{% endblock %}
+
+{% block content %}
+    <section class="menu-detail">
+        <h2>Menu du {{ menu.date.strftime('%A %d %B %Y') }}</h2>
+        <div class="menu-card">
+            <ul>
+                <li><strong>Entrée:</strong> {{ menu.entree }}</li>
+                <li><strong>Plat principal:</strong> {{ menu.plat_principal }}</li>
+                <li><strong>Dessert:</strong> {{ menu.dessert }}</li>
+            </ul>
+        </div>
+    </section>
+
+    <section class="comments">
+        <h3>Commentaires</h3>
+        
+        {% if 'user_id' in session %}
+            <form method="POST" class="comment-form">
+                <div class="form-group">
+                    <label for="comment">Ajouter un commentaire</label>
+                    <textarea name="comment" id="comment" required></textarea>
+                </div>
+                <button type="submit" class="btn">Poster</button>
+            </form>
+        {% else %}
+            <p><a href="{{ url_for('login') }}">Connectez-vous</a> pour poster un commentaire.</p>
+        {% endif %}
+        
+        <div class="comments-list">
+            {% for comment in comments %}
+                <div class="comment">
+                    <div class="comment-header">
+                        <strong>{{ comment.author.username }}</strong>
+                        <span class="date">{{ comment.date_posted.strftime('%d/%m/%Y à %H:%M') }}</span>
+                    </div>
+                    <p>{{ comment.content }}</p>
+                </div>
+            {% else %}
+                <p>Aucun commentaire pour ce menu.</p>
+            {% endfor %}
+        </div>
+    </section>
+{% endblock %}
