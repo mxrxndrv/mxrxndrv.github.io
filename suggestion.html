@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+
+{% block title %}Suggestions{% endblock %}
+
+{% block content %}
+    <section class="suggestions">
+        <h2>Suggestions de plats</h2>
+        
+        {% if 'user_id' in session %}
+            <form method="POST" class="suggestion-form">
+                <div class="form-group">
+                    <label for="suggestion">Faire une suggestion</label>
+                    <textarea name="suggestion" id="suggestion" required placeholder="Quel plat aimeriez-vous voir au menu?"></textarea>
+                </div>
+                <button type="submit" class="btn">Envoyer</button>
+            </form>
+        {% else %}
+            <p><a href="{{ url_for('login') }}">Connectez-vous</a> pour faire une suggestion.</p>
+        {% endif %}
+        
+        <div class="suggestions-list">
+            {% for suggestion in suggestions %}
+                <div class="suggestion">
+                    <div class="suggestion-header">
+                        <strong>{{ suggestion.author.username }}</strong>
+                        <span class="date">{{ suggestion.date_posted.strftime('%d/%m/%Y à %H:%M') }}</span>
+                    </div>
+                    <p>{{ suggestion.content }}</p>
+                </div>
+            {% else %}
+                <p>Aucune suggestion pour le moment.</p>
+            {% endfor %}
+        </div>
+    </section>
+{% endblock %}
