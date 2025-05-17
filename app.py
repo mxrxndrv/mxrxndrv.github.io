@@ -227,3 +227,18 @@ def delete_suggestion(suggestion_id):
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+@app.route('/api/menus')
+def api_menus():
+    menus = Menu.query.all()
+    menus_data = []
+    
+    for menu in menus:
+        menus_data.append({
+            'date': menu.date.strftime('%Y-%m-%d'),
+            'entree': menu.entree,
+            'plat_principal': menu.plat_principal,
+            'dessert': menu.dessert
+        })
+    
+    return jsonify(menus_data)
