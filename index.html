@@ -3,41 +3,41 @@
 {% block title %}Accueil{% endblock %}
 
 {% block content %}
-    <section class="today-menu">
-        <h2>Menu du jour</h2>
-        {% if menu_du_jour %}
-            <div class="menu-card">
-                <h3>{{ menu_du_jour.date.strftime('%A %d %B %Y') }}</h3>
-                <ul>
-                    <li><strong>Entrée:</strong> {{ menu_du_jour.entree }}</li>
-                    <li><strong>Plat principal:</strong> {{ menu_du_jour.plat_principal }}</li>
-                    <li><strong>Dessert:</strong> {{ menu_du_jour.dessert }}</li>
-                </ul>
-                <a href="{{ url_for('menu_detail', menu_id=menu_du_jour.id) }}" class="btn">Voir les commentaires</a>
-            </div>
-        {% else %}
-            <p>Aucun menu prévu pour aujourd'hui.</p>
-        {% endif %}
-    </section>
+<section class="today-menu">
+    <h2>Menu du jour</h2>
+    {% if menu_du_jour %}
+    <div class="menu-card">
+        <h3>{{ menu_du_jour.date.strftime('%A %d %B %Y') }}</h3>
+        <ul>
+            <li><strong>Entrée:</strong> {{ menu_du_jour.entree }}</li>
+            <li><strong>Plat principal:</strong> {{ menu_du_jour.plat_principal }}</li>
+            <li><strong>Dessert:</strong> {{ menu_du_jour.dessert }}</li>
+        </ul>
+        <a href="{{ url_for('menu_detail', menu_id=menu_du_jour.id) }}" class="btn">Voir les commentaires</a>
+    </div>
+    {% else %}
+    <p>Aucun menu prévu pour aujourd'hui.</p>
+    {% endif %}
+</section>
 
-    <section class="future-menus">
-        <h2>Prochains menus</h2>
-        {% if menus_futurs %}
-            <div class="menu-grid">
-                {% for menu in menus_futurs %}
-                    <div class="menu-card">
-                        <h3>{{ menu.date.strftime('%A %d %B') }}</h3>
-                        <ul>
-                            <li><strong>Entrée:</strong> {{ menu.entree }}</li>
-                            <li><strong>Plat:</strong> {{ menu.plat_principal }}</li>
-                            <li><strong>Dessert:</strong> {{ menu.dessert }}</li>
-                        </ul>
-                        <a href="{{ url_for('menu_detail', menu_id=menu.id) }}" class="btn">Commenter</a>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <p>Aucun menu à venir.</p>
-        {% endif %}
-    </section>
+<section class="future-menus">
+    <h2>Prochains menus</h2>
+    {% if menus_futurs %}
+    <div class="menu-grid">
+        {% for menu in menus_futurs %}
+        <div class="menu-card">
+            <h3>{{ menu.date.strftime('%A %d %B') }}</h3>
+            <ul>
+                <li><strong>Entrée:</strong> {{ menu.entree }}</li>
+                <li><strong>Plat:</strong> {{ menu.plat_principal }}</li>
+                <li><strong>Dessert:</strong> {{ menu.dessert }}</li>
+            </ul>
+            <a href="{{ url_for('menu_detail', menu_id=menu.id) }}" class="btn">Commenter</a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>Aucun menu à venir.</p>
+    {% endif %}
+</section>
 {% endblock %}
