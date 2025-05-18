@@ -247,5 +247,3 @@ def api_menus():
             'plat_principal': menu.plat_principal,
             'dessert': menu.dessert
         })
-    
-    return jsonify(menus_data)
