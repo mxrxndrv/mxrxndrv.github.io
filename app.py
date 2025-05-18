@@ -228,6 +228,13 @@ def delete_suggestion(suggestion_id):
 if __name__ == '__main__':
     app.run(debug=True)
 
+@app.route('/')
+def index():
+    today = date.today()
+    menu_du_jour = Menu.query.filter_by(date=today).first()
+    menus_futurs = Menu.query.filter(Menu.date > today).order_by(Menu.date.asc()).limit(5).all()
+    return render_template('index.html', menu_du_jour=menu_du_jour, menus_futurs=menus_futurs)
+
 @app.route('/api/menus')
 def api_menus():
     menus = Menu.query.all()
