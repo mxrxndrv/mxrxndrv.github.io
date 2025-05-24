@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion Cantine Scolaire</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <h1><i class="fas fa-utensils"></i> Cantine Scolaire</h1>
+            <div class="nav-menu">
+                <a href="#dashboard" class="nav-link active">Tableau de Bord</a>
+                <a href="#menus" class="nav-link">Menus</a>
+                <a href="#plats" class="nav-link">Plats</a>
+                <a href="#settings" class="nav-link">Paramètres</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <!-- Section Tableau de Bord -->
+        <section id="dashboard" class="section active">
+            <div class="section-header">
+                <h2>Tableau de Bord</h2>
+                <p>Vue d'ensemble de votre cantine</p>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-hamburger"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="total-plats">0</h3>
+                        <p>Plats disponibles</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="total-menus">0</h3>
+                        <p>Menus planifiés</p>
+                    </div>
+                </div>
+                
+                <div class="stat-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="stat-content">
+                        <h3 id="plat-populaire">-</h3>
+                        <p>Plat le plus populaire</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-actions">
+                <h3>Actions Rapides</h3>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" onclick="showSection('plats')">
+                        <i class="fas fa-plus"></i> Ajouter un Plat
+                    </button>
+                    <button class="btn btn-secondary" onclick="showSection('menus')">
+                        <i class="fas fa-calendar-plus"></i> Créer un Menu
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Plats -->
+        <section id="plats" class="section">
+            <div class="section-header">
+                <h2>Gestion des Plats</h2>
+                <button class="btn btn-primary" onclick="openModal('platModal')">
+                    <i class="fas fa-plus"></i> Nouveau Plat
+                </button>
+            </div>
+
+            <div class="search-bar">
+                <input type="text" id="search-plats" placeholder="Rechercher un plat..." onkeyup="searchPlats()">
+                <i class="fas fa-search"></i>
+            </div>
+
+            <div class="plats-grid" id="plats-container">
+                <!-- Les plats seront chargés ici dynamiquement -->
+            </div>
+        </section>
+
+        <!-- Section Menus -->
+        <section id="menus" class="section">
+            <div class="section-header">
+                <h2>Planning des Menus</h2>
+                <button class="btn btn-primary" onclick="openModal('menuModal')">
+                    <i class="fas fa-calendar-plus"></i> Nouveau Menu
+                </button>
+            </div>
+
+            <div class="menu-calendar">
+                <div class="calendar-header">
+                    <button class="btn-nav" onclick="previousWeek()">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <h3 id="current-week">Semaine du</h3>
+                    <button class="btn-nav" onclick="nextWeek()">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="calendar-grid" id="calendar-container">
+                    <!-- Le calendrier sera généré ici -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Section Paramètres -->
+        <section id="settings" class="section">
+            <div class="section-header">
+                <h2>Paramètres</h2>
+            </div>
+            
+            <div class="settings-card">
+                <h3>Informations de l'établissement</h3>
+                <form id="settings-form">
+                    <div class="form-group">
+                        <label for="school-name">Nom de l'établissement</label>
+                        <input type="text" id="school-name" placeholder="Nom de votre école">
+                    </div>
+                    <div class="form-group">
+                        <label for="school-address">Adresse</label>
+                        <input type="text" id="school-address" placeholder="Adresse de l'école">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Sauvegarder</button>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Modal Nouveau Plat -->
+    <div id="platModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Nouveau Plat</h3>
+                <span class="close" onclick="closeModal('platModal')">&times;</span>
+            </div>
+            <form id="plat-form">
+                <div class="form-group">
+                    <label for="plat-nom">Nom du plat *</label>
+                    <input type="text" id="plat-nom" required>
+                </div>
+                <div class="form-group">
+                    <label for="plat-description">Description</label>
+                    <textarea id="plat-description" rows="3"></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="plat-categorie">Catégorie *</label>
+                    <select id="plat-categorie" required>
+                        <option value="">Sélectionner une catégorie</option>
+                        <option value="entree">Entrée</option>
+                        <option value="plat-principal">Plat Principal</option>
+                        <option value="accompagnement">Accompagnement</option>
+                        <option value="dessert">Dessert</option>
+                        <option value="boisson">Boisson</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="plat-prix">Prix (€)</label>
+                    <input type="number" id="plat-prix" step="0.01" min="0">
+                </div>
+                <div class="form-group">
+                    <label for="plat-allergenes">Allergènes</label>
+                    <input type="text" id="plat-allergenes" placeholder="Ex: Gluten, Œufs, Lait">
+                </div>
+                <div class="form-group checkbox-group">
+                    <label>
+                        <input type="checkbox" id="plat-vegetarien">
+                        Plat végétarien
+                    </label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('platModal')">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Ajouter le Plat</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Nouveau Menu -->
+    <div id="menuModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Nouveau Menu</h3>
+                <span class="close" onclick="closeModal('menuModal')">&times;</span>
+            </div>
+            <form id="menu-form">
+                <div class="form-group">
+                    <label for="menu-date">Date *</label>
+                    <input type="date" id="menu-date" required>
+                </div>
+                <div class="form-group">
+                    <label for="menu-repas">Type de repas *</label>
+                    <select id="menu-repas" required>
+                        <option value="">Sélectionner</option>
+                        <option value="petit-dejeuner">Petit-déjeuner</option>
+                        <option value="dejeuner">Déjeuner</option>
+                        <option value="gouter">Goûter</option>
+                        <option value="diner">Dîner</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="menu-entree">Entrée</label>
+                    <select id="menu-entree">
+                        <option value="">Aucune entrée</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="menu-plat-principal">Plat Principal *</label>
+                    <select id="menu-plat-principal" required>
+                        <option value="">Sélectionner un plat</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="menu-accompagnement">Accompagnement</label>
+                    <select id="menu-accompagnement">
+                        <option value="">Aucun accompagnement</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="menu-dessert">Dessert</label>
+                    <select id="menu-dessert">
+                        <option value="">Aucun dessert</option>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('menuModal')">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Créer le Menu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts Firebase -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.2/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.22.2/firebase-firestore-compat.min.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
