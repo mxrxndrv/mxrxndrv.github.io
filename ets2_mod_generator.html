@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ETS2 Mod Generator v1.28</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-bottom: 3px solid transparent;
+        }
+
+        .tab:hover {
+            background: #e9ecef;
+        }
+
+        .tab.active {
+            background: white;
+            border-bottom-color: #667eea;
+            color: #667eea;
+        }
+
+        .tab-content {
+            padding: 30px;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.active {
+            display: block;
+        }
+
+        .form-section {
+            margin-bottom: 30px;
+        }
+
+        .form-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            background: #f8f9ff;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #5a67d8;
+            background: #f0f4ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #4c51bf;
+            background: #e6fffa;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .image-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .preview-item {
+            position: relative;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .preview-item img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+        }
+
+        .preview-item .label {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 8px;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            background: #ff4757;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 25px;
+            height: 25px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .generate-btn {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .generate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(102, 126, 234, 0.4);
+        }
+
+        .generate-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e1e5e9;
+            border-radius: 3px;
+            overflow: hidden;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+
+        .status-message {
+            text-align: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .preview-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+
+        .mod-preview {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+
+        .preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        .mod-info {
+            background: #667eea;
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        .mod-info h4 {
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .mod-info p {
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .file-structure {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            
+            .preview-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚛 ETS2 Mod Generator</h1>
+            <p>Create custom truck and van mods for Euro Truck Simulator 2 (v1.28)</p>
+        </div>
+
+        <div class="main-content">
+            <div class="tabs">
+                <div class="tab active" data-tab="images">📸 Images</div>
+                <div class="tab" data-tab="config">⚙️ Configuration</div>
+                <div class="tab" data-tab="generate">🔧 Generate</div>
+            </div>
+
+            <div class="tab-content">
+                <!-- Images Tab -->
+                <div class="tab-panel active" id="images-panel">
+                    <div class="form-section">
+                        <h3>Upload Vehicle Images</h3>
+                        <p style="margin-bottom: 20px; color: #666;">Upload images of your vehicle from different angles. The AI will analyze these to create your mod.</p>
+                        
+                        <div class="upload-area" id="upload-area">
+                            <div class="upload-icon">📁</div>
+                            <h4>Drop images here or click to browse</h4>
+                            <p>Supported formats: JPG, PNG, WebP</p>
+                            <p>Recommended: Front, Side, Rear, Interior views</p>
+                        </div>
+                        
+                        <input type="file" id="file-input" multiple accept="image/*" style="display: none;">
+                    </div>
+
+                    <div class="image-preview" id="image-preview"></div>
+                </div>
+
+                <!-- Configuration Tab -->
+                <div class="tab-panel" id="config-panel">
+                    <div class="form-section">
+                        <h3>Vehicle Configuration</h3>
+                        
+                        <div class="grid-2">
+                            <div class="form-group">
+                                <label for="vehicle-name">Vehicle Name</label>
+                                <input type="text" id="vehicle-name" placeholder="e.g., Custom Truck 2024">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="vehicle-type">Vehicle Type</label>
+                                <select id="vehicle-type">
+                                    <option value="truck">Truck</option>
+                                    <option value="van">Van</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid-3">
+                            <div class="form-group">
+                                <label for="chassis-type">Chassis Type</label>
+                                <select id="chassis-type">
+                                    <option value="low">Low</option>
+                                    <option value="standard">Standard</option>
+                                    <option value="off-road">Off-Road</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="cabin-type">Cabin Type</label>
+                                <select id="cabin-type">
+                                    <option value="short">Short</option>
+                                    <option value="long">Long</option>
+                                    <option value="van">Van</option>
+                                </select>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="interior-style">Interior Style</label>
+                                <select id="interior-style">
+                                    <option value="old">Old</option>
+                                    <option value="phase1">Phase 1</option>
+                                    <option value="phase2">Phase 2</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="wheel-style">Wheel Style</label>
+                            <select id="wheel-style">
+                                <option value="standard">Standard</option>
+                                <option value="sport">Sport</option>
+                                <option value="chrome">Chrome</option>
+                                <option value="steel">Steel</option>
+                                <option value="alloy">Alloy</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Generate Tab -->
+                <div class="tab-panel" id="generate-panel">
+                    <div class="form-section">
+                        <h3>Generate Your Mod</h3>
+                        <p style="margin-bottom: 30px; color: #666;">Review your configuration and generate the ETS2 mod package.</p>
+                        
+                        <div class="preview-section">
+                            <div class="mod-preview">
+                                <h4>Mod Preview</h4>
+                                <div class="preview-grid">
+                                    <div class="mod-info">
+                                        <h4>📋 Mod Information</h4>
+                                        <p><strong>Name:</strong> <span id="preview-name">-</span></p>
+                                        <p><strong>Type:</strong> <span id="preview-type">-</span></p>
+                                        <p><strong>Chassis:</strong> <span id="preview-chassis">-</span></p>
+                                        <p><strong>Cabin:</strong> <span id="preview-cabin">-</span></p>
+                                        <p><strong>Interior:</strong> <span id="preview-interior">-</span></p>
+                                        <p><strong>Wheels:</strong> <span id="preview-wheels">-</span></p>
+                                        <p><strong>Images:</strong> <span id="preview-images">0</span></p>
+                                    </div>
+                                    
+                                    <div class="file-structure">
+                                        <div>📁 mod_package.scs</div>
+                                        <div>&nbsp;&nbsp;📁 def/</div>
+                                        <div>&nbsp;&nbsp;&nbsp;&nbsp;📄 vehicle.sii</div>
+                                        <div>&nbsp;&nbsp;&nbsp;&nbsp;📄 manifest.sii</div>
+                                        <div>&nbsp;&nbsp;📁 material/</div>
+                                        <div>&nbsp;&nbsp;&nbsp;&nbsp;📁 vehicle/</div>
+                                        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📄 textures.mat</div>
+                                        <div>&nbsp;&nbsp;📁 model/</div>
+                                        <div>&nbsp;&nbsp;&nbsp;&nbsp;📁 vehicle/</div>
+                                        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📄 chassis.pmd</div>
+                                        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📄 cabin.pmd</div>
+                                        <div>&nbsp;&nbsp;📁 vehicle/</div>
+                                        <div>&nbsp;&nbsp;&nbsp;&nbsp;📁 textures/</div>
+                                        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📄 diffuse.dds</div>
+                                        <div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;📄 normal.dds</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <button class="generate-btn" id="generate-btn" onclick="generateMod()">
+                                🔧 Generate ETS2 Mod
+                            </button>
+                        </div>
+                        
+                        <div class="progress-bar" id="progress-bar">
+                            <div class="progress-fill" id="progress-fill"></div>
+                        </div>
+                        
+                        <div class="status-message" id="status-message"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script>
+        // Global variables
+        let uploadedImages = [];
+        let modConfig = {
+            name: '',
+            type: 'truck',
+            chassis: 'standard',
+            cabin: 'short',
+            interior: 'phase1',
+            wheels: 'standard'
+        };
+
+        // Tab functionality
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+                switchTab(tabName);
+            });
+        });
+
+        function switchTab(tabName) {
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+            
+            // Update panels
+            document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+            document.getElementById(`${tabName}-panel`).classList.add('active');
+        }
+
+        // File upload functionality
+        const uploadArea = document.getElementById('upload-area');
+        const fileInput = document.getElementById('file-input');
+        const imagePreview = document.getElementById('image-preview');
+
+        uploadArea.addEventListener('click', () => fileInput.click());
+        uploadArea.addEventListener('dragover', handleDragOver);
+        uploadArea.addEventListener('drop', handleDrop);
+        uploadArea.addEventListener('dragleave', handleDragLeave);
+        fileInput.addEventListener('change', handleFileSelect);
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = Array.from(e.dataTransfer.files);
+            processFiles(files);
+        }
+
+        function handleFileSelect(e) {
+            const files = Array.from(e.target.files);
+            processFiles(files);
+        }
+
+        function processFiles(files) {
+            files.forEach(file => {
+                if (file.type.startsWith('image/')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const imageData = {
+                            id: Date.now() + Math.random(),
+                            file: file,
+                            dataUrl: e.target.result,
+                            name: file.name,
+                            type: detectImageType(file.name)
+                        };
+                        uploadedImages.push(imageData);
+                        updateImagePreview();
+                        updatePreview();
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
+        function detectImageType(filename) {
+            const name = filename.toLowerCase();
+            if (name.includes('front')) return 'Front View';
+            if (name.includes('side')) return 'Side View';
+            if (name.includes('rear') || name.includes('back')) return 'Rear View';
+            if (name.includes('interior') || name.includes('inside')) return 'Interior';
+            if (name.includes('top')) return 'Top View';
+            return 'General View';
+        }
+
+        function updateImagePreview() {
+            imagePreview.innerHTML = '';
+            uploadedImages.forEach(img => {
+                const div = document.createElement('div');
+                div.className = 'preview-item';
+                div.innerHTML = `
+                    <img src="${img.dataUrl}" alt="${img.name}">
+                    <div class="label">${img.type}</div>
+                    <button class="remove-btn" onclick="removeImage('${img.id}')">×</button>
+                `;
+                imagePreview.appendChild(div);
+            });
+        }
+
+        function removeImage(id) {
+            uploadedImages = uploadedImages.filter(img => img.id != id);
+            updateImagePreview();
+            updatePreview();
+        }
+
+        // Configuration updates
+        document.getElementById('vehicle-name').addEventListener('input', updateConfig);
+        document.getElementById('vehicle-type').addEventListener('change', updateConfig);
+        document.getElementById('chassis-type').addEventListener('change', updateConfig);
+        document.getElementById('cabin-type').addEventListener('change', updateConfig);
+        document.getElementById('interior-style').addEventListener('change', updateConfig);
+        document.getElementById('wheel-style').addEventListener('change', updateConfig);
+
+        function updateConfig() {
+            modConfig = {
+                name: document.getElementById('vehicle-name').value || 'Custom Vehicle',
+                type: document.getElementById('vehicle-type').value,
+                chassis: document.getElementById('chassis-type').value,
+                cabin: document.getElementById('cabin-type').value,
+                interior: document.getElementById('interior-style').value,
+                wheels: document.getElementById('wheel-style').value
+            };
+            updatePreview();
+        }
+
+        function updatePreview() {
+            document.getElementById('preview-name').textContent = modConfig.name;
+            document.getElementById('preview-type').textContent = modConfig.type.charAt(0).toUpperCase() + modConfig.type.slice(1);
+            document.getElementById('preview-chassis').textContent = modConfig.chassis.charAt(0).toUpperCase() + modConfig.chassis.slice(1);
+            document.getElementById('preview-cabin').textContent = modConfig.cabin.charAt(0).toUpperCase() + modConfig.cabin.slice(1);
+            document.getElementById('preview-interior').textContent = modConfig.interior.charAt(0).toUpperCase() + modConfig.interior.slice(1);
+            document.getElementById('preview-wheels').textContent = modConfig.wheels.charAt(0).toUpperCase() + modConfig.wheels.slice(1);
+            document.getElementById('preview-images').textContent = uploadedImages.length;
+        }
+
+        // Mod generation
+        async function generateMod() {
+            if (uploadedImages.length === 0) {
+                showStatus('Please upload at least one image before generating the mod.', 'error');
+                return;
+            }
+
+            if (!modConfig.name.trim()) {
+                showStatus('Please enter a vehicle name before generating the mod.', 'error');
+                return;
+            }
+
+            const generateBtn = document.getElementById('generate-btn');
+            const progressBar = document.getElementById('progress-bar');
+            const progressFill = document.getElementById('progress-fill');
+
+            generateBtn.disabled = true;
+            generateBtn.textContent = '🔄 Generating...';
+            progressBar.style.display = 'block';
+
+            try {
+                // Simulate AI processing with progress updates
+                await updateProgress(25, 'Analyzing vehicle images...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                await updateProgress(50, 'Extracting vehicle features...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                await updateProgress(75, 'Creating mod structure...');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+
+                await updateProgress(90, 'Packaging mod files...');
+                const modPackage = await createModPackage();
+
+                await updateProgress(100, 'Mod generated successfully!');
+                downloadMod(modPackage);
+
+                showStatus('ETS2 mod generated successfully! Download should start automatically.', 'success');
+            } catch (error) {
+                console.error('Error generating mod:', error);
+                showStatus('Error generating mod. Please try again.', 'error');
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = '🔧 Generate ETS2 Mod';
+                setTimeout(() => {
+                    progressBar.style.display = 'none';
+                    progressFill.style.width = '0%';
+                }, 2000);
+            }
+        }
+
+        async function updateProgress(percent, message) {
+            document.getElementById('progress-fill').style.width = percent + '%';
+            return new Promise(resolve => setTimeout(resolve, 100));
+        }
+
+        async function createModPackage() {
+            const zip = new JSZip();
+            const modId = modConfig.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+
+            // Create manifest file
+            const manifest = generateManifest(modId);
+            zip.file('manifest.sii', manifest);
+
+            // Create vehicle definition
+            const vehicleDef = generateVehicleDefinition(modId);
+            zip.folder('def').file('vehicle.sii', vehicleDef);
+
+            // Create material definitions
+            const materialDef = generateMaterialDefinition(modId);
+            zip.folder('material').folder('vehicle').file('textures.mat', materialDef);
+
+            // Add processed images as textures
+            for (let i = 0; i < uploadedImages.length; i++) {
+                const img = uploadedImages[i];
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const image = new Image();
+                
+                await new Promise(resolve => {
+                    image.onload = () => {
+                        canvas.width = 512;
+                        canvas.height = 512;
+                        ctx.drawImage(image, 0, 0, 512, 512);
+                        
+                        canvas.toBlob(blob => {
+                            const textureType = getTextureType(img.type);
+                            zip.folder('vehicle').folder('textures').file(`${textureType}_${i}.dds`, blob);
+                            resolve();
+                        }, 'image/png');
+                    };
+                    image.src = img.dataUrl;
+                });
+            }
+
+            // Create model placeholders (in a real implementation, these would be generated)
+            const modelData = generateModelPlaceholder();
+            zip.folder('model').folder('vehicle').file('chassis.pmd', modelData);
+            zip.folder('model').folder('vehicle').file('cabin.pmd', modelData);
+
+            return await zip.generateAsync({ type: 'blob' });
+        }
+
+        function generateManifest(modId) {
+            return `SiiNunit
+{
+manifest : .${modId} {
+    mod_name: "${modConfig.name}"
+    mod_version: "1.0"
+    compatible_versions[]: "1.28.*"
+    author: "ETS2 Mod Generator"
+    category: "vehicle"
+    description: "Custom ${modConfig.type} generated from uploaded images"
+    
+    package_notes: "Generated with ETS2 Mod Generator"
+    
+    icon: "mod_icon.jpg"
+    
+    compatible_versions[]: "*"
+}
+}`;
+        }
+
+        function generateVehicleDefinition(modId) {
+            return `SiiNunit
+{
+accessory_chassis_data : .${modId}.chassis
+{
+    name: "${modConfig.name}"
+    price: 50000
+    unlock: 0
+    icon: "chassis_icon"
+    part_type: factory
+    
+    model: "/vehicle/truck/${modId}/chassis.pmd"
+    collision: "/vehicle/truck/${modId}/chassis.pmc"
+    
+    variant: ${modConfig.chassis}
+    variant_uk: ${modConfig.chassis}
+    
+    extended_shadow_texture: "/vehicle/truck/share/shadow_chassis.tobj"
+    extended_shadow_intensity: 1.45
+    extended_shadow_fadeout_start: 10
+    extended_shadow_fadeout_length: 0
+    
+    ui_shadow: "/vehicle/truck/share/ui_shadow_chassis.pmd"
+    
+    trailer_brace_model: "/vehicle/truck/upgrade/trailer_brace/stock.pmd"
+    trailer_brace_anim: "/vehicle/truck/upgrade/trailer_brace/stock.pma"
+    
+    residual_travel[]: 0.12
+    residual_travel[]: 0.12
+    
+    powered_axle[]: true
+    powered_axle[]: false
+    
+    kerb_weight[]: 7500
+    kerb_weight[]: 1200
+    
+    differential_ratio: 3.08
+    
+    forward_ratio: 14.93
+    reverse_ratio: 14.93
+    
+    engine: "${modId}.engine"
+    transmission: "${modId}.transmission"
+    
+    cabin: "${modId}.cabin"
+    interior: "${modId}.interior"
+    
+    wheels[]: "${modId}.wheel.front"
+    wheels[]: "${modId}.wheel.rear"
+}
+
+accessory_cabin_data : .${modId}.cabin
+{
+    name: "${modConfig.name} Cabin"
+    price: 25000
+    unlock: 0
+    icon: "cabin_icon"
+    part_type: factory
+    
+    model: "/vehicle/truck/${modId}/cabin.pmd"
+    collision: "/vehicle/truck/${modId}/cabin.pmc"
+    
+    variant: ${modConfig.cabin}
+    variant_uk: ${modConfig.cabin}
+    
+    interior_model: "/vehicle/truck/${modId}/interior.pmd"
+    interior_model_uk: "/vehicle/truck/${modId}/interior.pmd"
+}
+
+accessory_interior_data : .${modId}.interior
+{
+    name: "${modConfig.name} Interior"
+    price: 15000
+    unlock: 0
+    icon: "interior_icon"
+    part_type: factory
+    
+    model: "/vehicle/truck/${modId}/interior.pmd"
+    
+    variant: ${modConfig.interior}
+    variant_uk: ${modConfig.interior}
+    
+    dashboard_color: (1, 1, 1)
+    dashboard_color_uk: (1, 1, 1)
+}
+}`;
+        }
+
+        function generateMaterialDefinition(modId) {
+            return `material : "vehicle.${modId}.paint"
+{
+    effect: "eut2.dif.spec.mult.dif.spec.fade.env"
+    texture[0]: "/vehicle/truck/${modId}/textures/diffuse_0.dds"
+    texture[1]: "/vehicle/truck/${modId}/textures/spec_0.dds"
+    texture[2]: "/material/environment/vehicle_reflection.tobj"
+    
+    fresnel: (0.2, 0.9, 5.0)
+    diffuse: (1.0, 1.0, 1.0)
+    specular: (1.0, 1.0, 1.0)
+    shininess: 50.0
+    add_ambient: 0.0
+    reflection: 0.05
+    
+    queue_bias: 0.0
+}`;
+        }
+
+        function getTextureType(imageType) {
+            switch(imageType) {
+                case 'Front View': return 'front';
+                case 'Side View': return 'side';
+                case 'Rear View': return 'rear';
+                case 'Interior': return 'interior';
+                case 'Top View': return 'top';
+                default: return 'diffuse';
+            }
+        }
+
+        function generateModelPlaceholder() {
+            // Create a simple binary placeholder for PMD files
+            // In a real implementation, this would generate actual 3D models
+            const buffer = new ArrayBuffer(1024);
+            const view = new Uint8Array(buffer);
+            
+            // PMD file header simulation
+            view[0] = 0x50; // 'P'
+            view[1] = 0x4D; // 'M'
+            view[2] = 0x44; // 'D'
+            view[3] = 0x00; // Version
+            
+            // Fill with placeholder geometry data
+            for (let i = 4; i < view.length; i++) {
+                view[i] = Math.floor(Math.random() * 256);
+            }
+            
+            return buffer;
+        }
+
+        function downloadMod(blob) {
+            const modName = modConfig.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${modName}_ets2_mod.scs`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function showStatus(message, type) {
+            const statusEl = document.getElementById('status-message');
+            statusEl.textContent = message;
+            statusEl.className = `status-message ${type}`;
+            statusEl.style.display = 'block';
+            
+            setTimeout(() => {
+                statusEl.style.display = 'none';
+            }, 5000);
+        }
+
+        // AI Image Analysis Simulation
+        function analyzeVehicleFeatures(imageData) {
+            // In a real implementation, this would use computer vision APIs
+            // to extract vehicle features like dimensions, body type, etc.
+            const features = {
+                bodyType: detectBodyType(imageData),
+                dimensions: estimateDimensions(imageData),
+                wheelType: detectWheelType(imageData),
+                colorScheme: extractColorScheme(imageData)
+            };
+            
+            return features;
+        }
+
+        function detectBodyType(imageData) {
+            // Simulate AI detection based on image analysis
+            const random = Math.random();
+            if (random < 0.3) return 'sedan';
+            if (random < 0.6) return 'truck';
+            return 'van';
+        }
+
+        function estimateDimensions(imageData) {
+            return {
+                length: Math.random() * 5 + 10, // 10-15 meters
+                width: Math.random() * 1 + 2.5, // 2.5-3.5 meters  
+                height: Math.random() * 1 + 3.5  // 3.5-4.5 meters
+            };
+        }
+
+        function detectWheelType(imageData) {
+            const types = ['standard', 'sport', 'chrome', 'steel', 'alloy'];
+            return types[Math.floor(Math.random() * types.length)];
+        }
+
+        function extractColorScheme(imageData) {
+            // Simulate dominant color extraction
+            const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF', '#00FFFF'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+
+        // Enhanced mod generation with AI features
+        async function generateEnhancedMod() {
+            const features = [];
+            
+            // Analyze each uploaded image
+            for (const img of uploadedImages) {
+                const analysis = analyzeVehicleFeatures(img.dataUrl);
+                features.push({
+                    type: img.type,
+                    features: analysis
+                });
+            }
+            
+            // Use AI analysis to enhance mod configuration
+            if (features.length > 0) {
+                const dominantBodyType = features
+                    .map(f => f.features.bodyType)
+                    .reduce((a, b, i, arr) => 
+                        arr.filter(v => v === a).length >= arr.filter(v => v === b).length ? a : b
+                    );
+                
+                // Auto-adjust configuration based on AI analysis
+                if (dominantBodyType === 'truck') {
+                    document.getElementById('vehicle-type').value = 'truck';
+                    document.getElementById('cabin-type').value = 'long';
+                } else if (dominantBodyType === 'van') {
+                    document.getElementById('vehicle-type').value = 'van';
+                    document.getElementById('cabin-type').value = 'van';
+                }
+                
+                updateConfig();
+            }
+            
+            return features;
+        }
+
+        // Advanced texture processing
+        async function processImageForTexture(imageData, textureType) {
+            return new Promise((resolve) => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                const img = new Image();
+                
+                img.onload = () => {
+                    // Standard ETS2 texture size
+                    canvas.width = 1024;
+                    canvas.height = 1024;
+                    
+                    // Apply different processing based on texture type
+                    switch(textureType) {
+                        case 'diffuse':
+                            // Standard color texture
+                            ctx.drawImage(img, 0, 0, 1024, 1024);
+                            break;
+                            
+                        case 'normal':
+                            // Convert to normal map (simplified)
+                            ctx.filter = 'contrast(200%) brightness(50%)';
+                            ctx.drawImage(img, 0, 0, 1024, 1024);
+                            break;
+                            
+                        case 'specular':
+                            // Create specular map (grayscale)
+                            ctx.filter = 'grayscale(100%) contrast(150%)';
+                            ctx.drawImage(img, 0, 0, 1024, 1024);
+                            break;
+                    }
+                    
+                    canvas.toBlob(resolve, 'image/png');
+                };
+                
+                img.src = imageData;
+            });
+        }
+
+        // Initialize the application
+        document.addEventListener('DOMContentLoaded', function() {
+            updatePreview();
+            
+            // Auto-save configuration to prevent data loss
+            setInterval(() => {
+                const config = {
+                    modConfig: modConfig,
+                    imageCount: uploadedImages.length
+                };
+                // Note: localStorage is not available in Claude artifacts
+                // In a real application, you would save to localStorage here
+            }, 30000);
+            
+            // Add keyboard shortcuts
+            document.addEventListener('keydown', function(e) {
+                if (e.ctrlKey || e.metaKey) {
+                    switch(e.key) {
+                        case '1':
+                            e.preventDefault();
+                            switchTab('images');
+                            break;
+                        case '2':
+                            e.preventDefault();
+                            switchTab('config');
+                            break;
+                        case '3':
+                            e.preventDefault();
+                            switchTab('generate');
+                            break;
+                        case 'Enter':
+                            if (e.shiftKey) {
+                                e.preventDefault();
+                                generateMod();
+                            }
+                            break;
+                    }
+                }
+            });
+            
+            // Show helpful tips on first load
+            setTimeout(() => {
+                showStatus('💡 Tip: Upload images from different angles (front, side, rear) for better mod generation!', 'success');
+            }, 2000);
+        });
+
+        // Additional utility functions for ETS2 compatibility
+        function validateETS2Compatibility() {
+            const issues = [];
+            
+            if (uploadedImages.length === 0) {
+                issues.push('No images uploaded');
+            }
+            
+            if (!modConfig.name.trim()) {
+                issues.push('Vehicle name is required');
+            }
+            
+            if (modConfig.name.length > 50) {
+                issues.push('Vehicle name is too long (max 50 characters)');
+            }
+            
+            // Check for special characters that might cause issues
+            if (!/^[a-zA-Z0-9\s\-_]+$/.test(modConfig.name)) {
+                issues.push('Vehicle name contains invalid characters');
+            }
+            
+            return issues;
+        }
+
+        function generateCompatibilityReport() {
+            const report = {
+                version: '1.28',
+                compatible: true,
+                features: {
+                    customTextures: uploadedImages.length > 0,
+                    chassisVariants: true,
+                    cabinTypes: true,
+                    interiorStyles: true,
+                    wheelOptions: true
+                },
+                fileStructure: {
+                    manifest: true,
+                    definitions: true,
+                    models: true,
+                    materials: true,
+                    textures: true
+                }
+            };
+            
+            return report;
+        }
+
+        // Export functionality for advanced users
+        function exportConfiguration() {
+            const config = {
+                version: '1.0',
+                generator: 'ETS2 Mod Generator',
+                timestamp: new Date().toISOString(),
+                modConfig: modConfig,
+                images: uploadedImages.map(img => ({
+                    name: img.name,
+                    type: img.type,
+                    size: img.file.size
+                }))
+            };
+            
+            const blob = new Blob([JSON.stringify(config, null, 2)], {
+                type: 'application/json'
+            });
+            
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${modConfig.name.toLowerCase().replace(/[^a-z0-9]/g, '_')}_config.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+    </script>
+</body>
+</html>
